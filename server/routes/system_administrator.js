@@ -1,8 +1,6 @@
 const express = require('express');
+const db_pool = require('../database').pool;
 const admin = express.Router(); // יצירת router חדש עבור הניהול של המנהל
-
-// ייבוא של pool החיבור למסד הנתונים
-const db_pool = require('../database').pool; // חיבור למסד הנתונים
 
 
 // דוגמה לנתיב במנהל מערכת
