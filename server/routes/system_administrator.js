@@ -2,15 +2,15 @@ const express = require('express');
 const admin = express.Router(); // יצירת router חדש עבור הניהול של המנהל
 
 // ייבוא של pool החיבור למסד הנתונים
-const db_pool = require('./database').pool; // חיבור למסד הנתונים
+const db_pool = require('../database').pool; // חיבור למסד הנתונים
 
-module.exports = admin; // ייצוא המנהל כך שניתן להשתמש בו בקובץ הראשי (server.js)
 
-// בדיקה אם הגעת לנתיב '/admin'
-admin.get("/", (req, res) => {
-    console.log("הגעת למנהל"); // הפקודה תדפיס למסוף כאשר תבצע בקשה לנתיב '/admin'
-    res.send("Admin Dashboard"); // תציג דף פשוט עם הודעה
+// דוגמה לנתיב במנהל מערכת
+admin.get('/all', (req, res) => {
+    res.send('All admin data');
+    console.log("הגעת למנהל");
 });
+
 
 // פונקציה להצגת משתמשים (GET)
 admin.get("/List", (req, res) => {
@@ -79,3 +79,5 @@ admin.delete("/Del", (req, res) => {
         }
     });
 });
+
+module.exports = admin;
