@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>התחברות</title>
+</head>
+<body>
+    <h1>התחבר למערכת</h1>
+    <form id="loginForm">
+        <label for="Username">שם משתמש:</label>
+        <input type="text" id="Username" name="Username" required><br><br>
+
+        <label for="Password">סיסמה:</label>
+        <input type="password" id="Password" name="Password" required><br><br>
+
+        <button type="submit">התחבר</button>
+    </form>
+
+    <script>
+        // כשלחצן ההתחברות נלחץ
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // מונע רענון הדף
+
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // שליחה לשרת באמצעות Fetch
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message); // הצגת הודעה לאחר התחברות
+                if (data.message === "Login successful") {
+                    window.location.href = '/dashboard'; // אם ההתחברות הצליחה, הפניית דף לממשק המשתמש
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,11 @@
 const express = require('express');
 const app = express();
+require('dotenv').config();
+app.use(express.json());
+const cors = require('cors');
+app.use(cors());
+
+
 //ייבוא של ראוטרים
 const adminDEMO = require('./routes/system_administrator');// ייבוא ה-router של המנהל
 const farmerDetailsR=require('./routes/farmerDetails');
@@ -13,6 +19,7 @@ const volunteerAssignmentsR=require('./routes/volunteerAssignments');
 // חיבור למסד הנתונים
 const db_pool = require('./database').pool;
 
+
 db_pool.getConnection((err, connection) => {
     if (err) {
         console.error('Error connecting to the database:', err);
@@ -21,6 +28,10 @@ db_pool.getConnection((err, connection) => {
     console.log('Successfully connected to the database!');
     connection.release(); // שחרור החיבור
 });
+
+const path = require('path');
+console.log('Database module path:', path.resolve('./database'));
+//const db_pool = require('./database').pool;
 
 
 // הערכים הישירים
@@ -58,7 +69,20 @@ app.use("/groupVolunteerMapping",groupVolunteerMappingR);
 app.use("/systemMetrics",systemMetricsR);
 app.use("/users",usersR);
 app.use("/volunteerAssignments",volunteerAssignmentsR);
+// הגדרת נתיב לדף הרישום
 
+// הגדרת נתיב לדף הרישום
+app.get('/register', (req, res) => {
+    console.log(__dirname);  // יפלט את המיקום של הקובץ שמריץ את השרת
+console.log(path.join(__dirname, '/pront/register.html')); // יראה את הנתיב המלא של הקובץ
+
+    res.sendFile(path.join(__dirname, '/pront/register.html'));
+});
+
+// הגדרת נתיב לדף ההתחברות
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, '/pront/login.html')); // הצגת דף ה-HTML של ההתחברות
+});
 
 // גישה לנתיב בסיסי
 app.get('/', (req, res) => {

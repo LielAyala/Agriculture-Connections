@@ -1,59 +1,76 @@
 // הגדרת router עבור Users
 const express = require('express');
+const bcrypt = require('bcrypt');//ייבוא ספרייה שאחראית על הצפנת סיסמאות ולהשוואת סיסמאות
+const jwt = require('jsonwebtoken');//כדי לייצר JWT Tokens.
 const db_pool = require('../database').pool;
 const usersRouter = express.Router();
+require('dotenv').config();
+
 
 usersRouter.get('/A', (req, res) => {
     res.send('משתמש ');
     console.log("  משתמש ");
   });
 
-// קריאת כל הפרטים של Users
-usersRouter.get('/all', (req, res) => {
-    const query = "SELECT * FROM `Users`";
-    db_pool.query(query, (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Database error", error: err });
-        }
-        res.status(200).json(rows);
-    });
+// רישום משתמש חדש
+usersRouter.post('/register', async (req, res) => {
+    console.log("🔍 Request body:", req.body);
+    const { Username, Password, Role } = req.body;
+    if (!Username || !Password || !Role) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(Password, 10);
+        const query = `INSERT INTO Users (Username, Password, Role) VALUES (?, ?, ?)`;
+
+        db_pool.query(query, [Username, hashedPassword, Role], (err, result) => {
+            if (err) {
+                console.log("❌ Error during insertion:", err);
+                return res.status(500).json({ message: "Error registering user", error: err });
+            }
+            console.log("✔️ User registered successfully", result);
+            res.status(201).json({ message: "User registered successfully" });
+        });
+    } catch (error) {
+        console.log("❌ Server error:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
 });
 
-// הוספת משתמש חדש
-usersRouter.post('/add', (req, res) => {
-    const { username, email, password, userType } = req.body;
-    const query = `INSERT INTO Users (username, email, password, userType)
-                   VALUES (?, ?, ?, ?)`;
-    db_pool.query(query, [username, email, password, userType], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error adding user", error: err });
+
+
+usersRouter.post("/login", async (req, res) => {
+    try {
+        const { Username, Password } = req.body;
+
+        if (!Username || !Password) {
+            return res.status(400).json({ message: "Missing required fields" });
         }
-        res.status(200).json({ message: "User added successfully" });
-    });
+
+        db_pool.query("SELECT * FROM Users WHERE Username = ?", [Username], async (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: "Error querying the database" });
+            }
+
+            if (results.length === 0) {
+                return res.status(401).json({ message: "Invalid username or password" });
+            }
+
+            const validPassword = await bcrypt.compare(Password, results[0].Password);
+
+            if (!validPassword) {
+                return res.status(401).json({ message: "Invalid username or password" });
+            }
+
+            res.json({ message: "Login successful", user: results[0] });
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
 });
 
-// עדכון פרטי משתמש
-usersRouter.patch('/edit', (req, res) => {
-    const { id, username, email, password, userType } = req.body;
-    const query = `UPDATE Users SET username = ?, email = ?, password = ?, userType = ? WHERE id = ?`;
-    db_pool.query(query, [username, email, password, userType, id], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error updating user", error: err });
-        }
-        res.status(200).json({ message: "User updated successfully" });
-    });
-});
-
-// מחיקת משתמש
-usersRouter.delete('/delete', (req, res) => {
-    const { id } = req.body;
-    const query = "DELETE FROM Users WHERE id = ?";
-    db_pool.query(query, [id], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error deleting user", error: err });
-        }
-        res.status(200).json({ message: "User deleted successfully" });
-    });
-});
-
-module.exports = usersRouter;
+  
+  module.exports = usersRouter;
+  

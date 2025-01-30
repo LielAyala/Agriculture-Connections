@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רישום משתמש</title>
+</head>
+<body>
+    <h1>הרשם למערכת</h1>
+    <form id="registerForm">
+        <label for="Username">Username:</label>
+        <input type="text" id="Username" name="Username" placeholder="Enter username" required /><br>
+
+        <label for="Password">Password:</label>
+        <input type="password" id="Password" name="Password" placeholder="Enter password" required /><br>
+
+        <label for="Role">Role:</label>
+        <input type="text" id="Role" name="Role" placeholder="Enter role" required /><br>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div id="responseMessage"></div> <!-- להצגת תוצאה למשתמש -->
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // מונע את ריענון הדף בעת שליחת הטופס
+
+            const formData = new FormData(event.target);
+            const data = {
+                Username: formData.get('Username'),
+                Password: formData.get('Password'),
+                Role: formData.get('Role')
+            };
+
+            try {
+                // שליחת הבקשה לשרת
+                const response = await fetch('http://localhost:3333/users/register', {  // תיקנתי את ה-URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json(); // ממיר את התגובה ל-JSON
+                document.getElementById('responseMessage').innerText = result.message; // מציג את ההודעה למשתמש
+
+                if (response.ok) {
+                    alert('User registered successfully!'); // הצגת הצלחה אם הכל תקין
+                } else {
+                    alert(result.message); // הצגת שגיאה אם יש
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while registering the user');
+            }
+        });
+    </script>
+</body>
+</html>
