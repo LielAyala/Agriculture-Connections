@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>ניהול חקלאים</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            padding: 20px;
+        }
+        label, input, button {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: right;
+        }
+        th {
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 ניהול חקלאים</h1>
+
+    <!-- 🔹 טבלת כל החקלאים -->
+    <h2>📜 רשימת חקלאים</h2>
+    <button onclick="getFarmers()">📥 טען רשימת חקלאים</button>
+    <table id="farmersTable">
+        <thead>
+            <tr>
+                <th>שם</th>
+                <th>שם חווה</th>
+                <th>טלפון</th>
+                <th>אימייל</th>
+                <th>כתובת</th>
+                <th>🗑️ מחק</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- 🔹 חיפוש חקלאי לפי שם -->
+    <h2>🔍 חיפוש חקלאי לפי שם / חווה</h2>
+    <input type="text" id="searchQuery" placeholder="הכנס שם חקלאי או שם חווה">
+    <button onclick="searchFarmers()">🔎 חפש</button>
+    <div id="searchResults"></div>
+
+    <!-- 🔹 הוספת חקלאי חדש -->
+    <h2>➕ הוספת חקלאי חדש</h2>
+    <form id="addFarmerForm">
+        <label>שם:</label> <input type="text" id="Name" required>
+        <label>שם חווה:</label> <input type="text" id="FarmName" required>
+        <label>טלפון:</label> <input type="text" id="Telephone" required>
+        <label>אימייל:</label> <input type="email" id="Email" required>
+        <label>כתובת:</label> <input type="text" id="Address" required>
+        <label>כמות דונמים:</label> <input type="number" id="QuantityOfDunams" required>
+        <label>ימי עבודה:</label> <input type="text" id="WorkingDays" required>
+        <label>תיאור העבודה:</label> <input type="text" id="BriefExplanationOfWork" required>
+        <label>תעודת זהות:</label> <input type="text" id="IDNumber" required>
+        <label>שעת התחלה:</label> <input type="time" id="RelevantStartTime" required>
+        <label>שעת סיום:</label> <input type="time" id="RelevantEndTime" required>
+        <label>מספר מתנדבים רצוי:</label> <input type="number" id="DesiredVolunteersCount" required>
+        <label>סטטוס (פעיל/לא פעיל):</label> <input type="number" id="ACTIV" placeholder="1 = פעיל, 0 = לא פעיל" required>
+        <button type="submit">➕ הוסף חקלאי</button>
+    </form>
+
+    <script>
+        // 🔹 **שליפת כל החקלאים**
+        async function getFarmers() {
+    try {
+        console.log("📡 שליחת בקשה לטעינת כל החקלאים...");
+        
+        const response = await fetch("http://localhost:3333/farmerD/All");
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בשרת: ${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ נתונים שהתקבלו:", data);
+
+        if (!Array.isArray(data)) {
+            throw new Error("❌ הנתונים שהתקבלו אינם מערך! " + JSON.stringify(data));
+        }
+
+        const tableBody = document.querySelector("#farmersTable tbody");
+        tableBody.innerHTML = ""; // מנקה את הטבלה
+
+        data.forEach(farmer => {
+            const row = `<tr>
+                <td>${farmer.Name}</td>
+                <td>${farmer.FarmName}</td>
+                <td>${farmer.Telephone}</td>
+                <td>${farmer.Email}</td>
+                <td>${farmer.Address}</td>
+                <td><button onclick="deleteFarmer(${farmer.ID})">🗑️ מחק</button></td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+
+    } catch (error) {
+        console.error("❌ שגיאה בטעינת החקלאים:", error);
+        alert("❌ שגיאה בטעינת רשימת החקלאים: " + error.message);
+    }
+}
+
+
+
+        // 🔹 **חיפוש חקלאים לפי שם או חווה**
+        async function searchFarmers() {
+    try {
+        const queryInput = document.getElementById("searchQuery");
+        if (!queryInput) {
+            throw new Error("❌ אלמנט החיפוש לא נמצא ב-HTML!");
+        }
+
+        const query = queryInput.value.trim(); // הסרת רווחים מיותרים
+
+        if (!query) {
+            alert("❌ נא להזין שם לחיפוש!");
+            return;
+        }
+
+        console.log(`📡 שליחת בקשה לחיפוש חקלאים עם הערך: "${query}"`);
+
+        const response = await fetch(`http://localhost:3333/farmerD/search?query=${query}`);
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בשרת: ${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ תוצאות שהתקבלו:", data);
+
+        const resultsDiv = document.getElementById("searchResults");
+        if (!resultsDiv) {
+            throw new Error("❌ אלמנט searchResults לא נמצא ב-HTML!");
+        }
+
+        resultsDiv.innerHTML = ""; // מנקה את התוצאות הקודמות
+
+        if (!Array.isArray(data)) {
+            throw new Error("❌ הנתונים שהתקבלו אינם מערך! " + JSON.stringify(data));
+        }
+
+        if (data.length === 0) {
+            resultsDiv.innerHTML = `<p>❌ לא נמצאו חקלאים בשם "${query}"</p>`;
+            return;
+        }
+
+        data.forEach(farmer => {
+            const farmerInfo = `<p>👨‍🌾 <strong>${farmer.Name}</strong> - ${farmer.FarmName}, 📞 ${farmer.Telephone}</p>`;
+            resultsDiv.innerHTML += farmerInfo;
+        });
+
+    } catch (error) {
+        console.error("❌ שגיאה בחיפוש חקלאים:", error);
+        alert("❌ שגיאה בחיפוש חקלאים: " + error.message);
+    }
+}
+
+
+        // 🔹 **הוספת חקלאי חדש**
+        document.getElementById("addFarmerForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); // מונע רענון דף
+
+            const farmerData = {
+                Name: document.getElementById("Name").value,
+                FarmName: document.getElementById("FarmName").value,
+                Telephone: document.getElementById("Telephone").value,
+                Email: document.getElementById("Email").value,
+                Address: document.getElementById("Address").value,
+                QuantityOfDunams: document.getElementById("QuantityOfDunams").value,
+                WorkingDays: document.getElementById("WorkingDays").value,
+                BriefExplanationOfWork: document.getElementById("BriefExplanationOfWork").value,
+                IDNumber: document.getElementById("IDNumber").value,
+                RelevantStartTime: document.getElementById("RelevantStartTime").value,
+                RelevantEndTime: document.getElementById("RelevantEndTime").value,
+                DesiredVolunteersCount: document.getElementById("DesiredVolunteersCount").value,
+                ACTIV: document.getElementById("ACTIV").value
+            };
+
+            try {
+                const response = await fetch("http://localhost:3333/farmerD/Add", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(farmerData)
+                });
+
+                const data = await response.json();
+                alert(data.message);
+                document.getElementById("addFarmerForm").reset();
+                getFarmers(); // רענון רשימת החקלאים
+            } catch (error) {
+                console.error("❌ שגיאה בהוספת חקלאי:", error);
+                alert("❌ שגיאה בהוספת חקלאי");
+            }
+        });
+
+        // 🔹 **מחיקת חקלאי**
+        async function deleteFarmer(id) {
+    if (!id || isNaN(id)) {
+        console.error("❌ שגיאה: ID לא תקין!", id);
+        alert("❌ שגיאה: ID לא תקין!");
+        return;
+    }
+
+    if (!confirm("🗑️ האם אתה בטוח שברצונך למחוק את החקלאי?")) return;
+
+    console.log(`📡 שליחת בקשת מחיקה ל-ID: ${id}`);
+
+    try {
+        const response = await fetch(`http://localhost:3333/farmerD/Delete/${id}`, { method: "DELETE" });
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה במחיקה: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ תגובת מחיקה מהשרת:", data);
+
+        alert(data.message);
+        getFarmers(); // רענון רשימת החקלאים
+
+    } catch (error) {
+        console.error("❌ שגיאה במחיקת חקלאי:", error);
+        alert("❌ שגיאה במחיקת חקלאי: " + error.message);
+    }
+}
+
+    </script>
+</body>
+</html>
