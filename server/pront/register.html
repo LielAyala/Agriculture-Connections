@@ -35,13 +35,14 @@
 
             try {
                 // שליחת הבקשה לשרת
-                const response = await fetch('http://localhost:3333/users/register', {  // תיקנתי את ה-URL
+                const response = await fetch('http://localhost:3333/users/register', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
+                   'Content-Type': 'application/json',
+                            },
                     body: JSON.stringify(data)
-                });
+            });
+
 
                 const result = await response.json(); // ממיר את התגובה ל-JSON
                 document.getElementById('responseMessage').innerText = result.message; // מציג את ההודעה למשתמש

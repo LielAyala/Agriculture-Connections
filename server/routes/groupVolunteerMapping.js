@@ -1,59 +1,83 @@
-// הגדרת router עבור GroupVolunteerMapping
 const express = require('express');
-const db_pool = require('../database').pool;
-const groupVolunteerMappingRouter = express.Router();
+const router = express.Router();
+const db = require('../database'); // שימוש ב- promisePool מה- database.js
 
-groupVolunteerMappingRouter.get('/A', (req, res) => {
-    res.send('1קבוצה ');
-    console.log("  1קבוצה ");
-  });
-
-// קריאת כל הפרטים של GroupVolunteerMapping
-groupVolunteerMappingRouter.get('/all', (req, res) => {
-    const query = "SELECT * FROM `GroupVolunteerMapping`";
-    db_pool.query(query, (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Database error", error: err });
-        }
-        res.status(200).json(rows);
-    });
+// 📋 **טעינת כל המשימות מהטבלה**
+router.get('/all', async (req, res) => {
+    try {
+        const [results] = await db.query(`
+            SELECT gvm.*, gd.Name AS GroupName, fd.Name AS FarmerName, fd.Address AS FarmerLocation
+            FROM GroupVolunteerMapping gvm
+            JOIN GroupDetails gd ON gvm.GroupID = gd.ID
+            JOIN FarmerDetails fd ON gvm.FarmerID = fd.ID
+        `);
+        res.status(200).json(results);
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה במסד הנתונים", error: err.message });
+    }
 });
 
-// הוספת GroupVolunteerMapping חדש
-groupVolunteerMappingRouter.post('/add', (req, res) => {
-    const { GroupID, VolunteerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating } = req.body;
-    const query = `INSERT INTO GroupVolunteerMapping (GroupID, VolunteerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-    db_pool.query(query, [GroupID, VolunteerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error adding group-volunteer mapping", error: err });
-        }
-        res.status(200).json({ message: "Group-volunteer mapping added successfully" });
-    });
+// ➕ **הוספת משימה חדשה לטבלה**
+router.post('/add', async (req, res) => {
+    const { GroupID, FarmerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating, Area } = req.body;
+
+    try {
+        const query = `
+            INSERT INTO GroupVolunteerMapping
+            (GroupID, FarmerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating, Area)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const values = [GroupID, FarmerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating, Area];
+
+        await db.query(query, values);
+        res.status(201).json({ message: "✅ משימה נוספה בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה בהוספת משימה", error: err.message });
+    }
 });
 
-// עדכון GroupVolunteerMapping
-groupVolunteerMappingRouter.patch('/edit', (req, res) => {
-    const { ID, GroupID, VolunteerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating } = req.body;
-    const query = `UPDATE GroupVolunteerMapping SET GroupID = ?, VolunteerID = ?, DateAssigned = ?, Status = ?, Notes = ?, StartTime = ?, EndTime = ?, Rating = ? WHERE ID = ?`;
-    db_pool.query(query, [GroupID, VolunteerID, DateAssigned, Status, Notes, StartTime, EndTime, Rating, ID], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error updating group-volunteer mapping", error: err });
+// 📝 **עדכון משימה לפי ID**
+router.patch('/edit/:id', async (req, res) => {
+    const { id } = req.params;
+    const { DateAssigned, Status, Notes, StartTime, EndTime, Rating, Area } = req.body;
+
+    try {
+        const query = `
+            UPDATE GroupVolunteerMapping SET
+            DateAssigned = ?, Status = ?, Notes = ?, StartTime = ?, EndTime = ?, Rating = ?, Area = ?
+            WHERE ID = ?
+        `;
+        const values = [DateAssigned, Status, Notes, StartTime, EndTime, Rating, Area, id];
+
+        const [result] = await db.query(query, values);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "⚠️ משימה לא נמצאה לעדכון" });
         }
-        res.status(200).json({ message: "Group-volunteer mapping updated successfully" });
-    });
+
+        res.status(200).json({ message: "✅ משימה עודכנה בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה בעדכון משימה", error: err.message });
+    }
 });
 
-// מחיקת GroupVolunteerMapping
-groupVolunteerMappingRouter.delete('/delete', (req, res) => {
-    const { ID } = req.body;
-    const query = "DELETE FROM GroupVolunteerMapping WHERE ID = ?";
-    db_pool.query(query, [ID], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error deleting group-volunteer mapping", error: err });
+// 🗑️ **מחיקת משימה לפי ID**
+router.delete('/delete/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.query("DELETE FROM GroupVolunteerMapping WHERE ID = ?", [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "⚠️ משימה לא נמצאה למחיקה" });
         }
-        res.status(200).json({ message: "Group-volunteer mapping deleted successfully" });
-    });
+
+        res.status(200).json({ message: "✅ משימה נמחקה בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה במחיקת משימה", error: err.message });
+    }
 });
 
-module.exports = groupVolunteerMappingRouter;
+module.exports = router;

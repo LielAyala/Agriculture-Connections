@@ -95,7 +95,10 @@ app.get('/farmers', (req, res) => {
 app.get('/grups', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'groups.html'));
 });
-
+//נתיב לקביעת התנדבות 
+app.get('/groupVolunteerMapping', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pront', 'groupVolunteerMapping.html'));
+});
 
 // גישה לנתיב בסיסי
 app.get('/', (req, res) => {
