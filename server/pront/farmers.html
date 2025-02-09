@@ -32,7 +32,7 @@
 </head>
 <body>
     <h1>📋 ניהול חקלאים</h1>
-
+    
     <!-- 🔹 טבלת כל החקלאים -->
     <h2>📜 רשימת חקלאים</h2>
     <button onclick="getFarmers()">📥 טען רשימת חקלאים</button>
@@ -44,6 +44,15 @@
                 <th>טלפון</th>
                 <th>אימייל</th>
                 <th>כתובת</th>
+                <th>כמות דונמים</th>
+                <th>ימי עבודה</th>
+                <th>תיאור עבודה</th>
+                <th>תעודת זהות</th>
+                <th>שעת התחלה</th>
+                <th>שעת סיום</th>
+                <th>מספר מתנדבים רצוי</th>
+                <th>סטטוס (פעיל/לא פעיל)</th>
+                <th>📝 ערוך</th>
                 <th>🗑️ מחק</th>
             </tr>
         </thead>
@@ -74,7 +83,7 @@
         <label>סטטוס (פעיל/לא פעיל):</label> <input type="number" id="ACTIV" placeholder="1 = פעיל, 0 = לא פעיל" required>
         <button type="submit">➕ הוסף חקלאי</button>
     </form>
-
+    
     <script>
         // 🔹 **שליפת כל החקלאים**
         async function getFarmers() {
@@ -84,26 +93,34 @@
         const response = await fetch("http://localhost:3333/farmerD/All");
 
         if (!response.ok) {
-            throw new Error(`❌ שגיאה בשרת: ${response.status} - ${await response.text()}`);
+            throw new Error(`❌ שגיאה בשרת: ${response.status}`);
         }
 
         const data = await response.json();
         console.log("✅ נתונים שהתקבלו:", data);
 
-        if (!Array.isArray(data)) {
-            throw new Error("❌ הנתונים שהתקבלו אינם מערך! " + JSON.stringify(data));
-        }
-
         const tableBody = document.querySelector("#farmersTable tbody");
         tableBody.innerHTML = ""; // מנקה את הטבלה
 
         data.forEach(farmer => {
-            const row = `<tr>
-                <td>${farmer.Name}</td>
-                <td>${farmer.FarmName}</td>
-                <td>${farmer.Telephone}</td>
-                <td>${farmer.Email}</td>
-                <td>${farmer.Address}</td>
+            const row = `<tr id="row-${farmer.ID}">
+                <td><input type="text" value="${farmer.Name}" id="name-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.FarmName}" id="farmName-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.Telephone}" id="telephone-${farmer.ID}" disabled></td>
+                <td><input type="email" value="${farmer.Email}" id="email-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.Address}" id="address-${farmer.ID}" disabled></td>
+                <td><input type="number" value="${farmer.QuantityOfDunams}" id="quantity-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.WorkingDays}" id="workingDays-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.BriefExplanationOfWork}" id="briefExplanation-${farmer.ID}" disabled></td>
+                <td><input type="text" value="${farmer.IDNumber}" id="idNumber-${farmer.ID}" disabled></td>
+                <td><input type="time" value="${farmer.RelevantStartTime}" id="startTime-${farmer.ID}" disabled></td>
+                <td><input type="time" value="${farmer.RelevantEndTime}" id="endTime-${farmer.ID}" disabled></td>
+                <td><input type="number" value="${farmer.DesiredVolunteersCount}" id="volunteers-${farmer.ID}" disabled></td>
+                <td><input type="number" value="${farmer.ACTIV}" id="activ-${farmer.ID}" disabled></td>
+                <td>
+                    <button onclick="enableEdit(${farmer.ID})" id="edit-btn-${farmer.ID}">📝 ערוך</button>
+                    <button onclick="saveEdit(${farmer.ID})" id="save-btn-${farmer.ID}" style="display:none;">💾 שמור</button>
+                </td>
                 <td><button onclick="deleteFarmer(${farmer.ID})">🗑️ מחק</button></td>
             </tr>`;
             tableBody.innerHTML += row;
@@ -111,12 +128,9 @@
 
     } catch (error) {
         console.error("❌ שגיאה בטעינת החקלאים:", error);
-        alert("❌ שגיאה בטעינת רשימת החקלאים: " + error.message);
+        alert("❌ שגיאה בטעינת רשימת החקלאים");
     }
 }
-
-
-
         // 🔹 **חיפוש חקלאים לפי שם או חווה**
         async function searchFarmers() {
     try {
@@ -169,8 +183,6 @@
         alert("❌ שגיאה בחיפוש חקלאים: " + error.message);
     }
 }
-
-
         // 🔹 **הוספת חקלאי חדש**
         document.getElementById("addFarmerForm").addEventListener("submit", async function(event) {
             event.preventDefault(); // מונע רענון דף
@@ -207,7 +219,6 @@
                 alert("❌ שגיאה בהוספת חקלאי");
             }
         });
-
         // 🔹 **מחיקת חקלאי**
         async function deleteFarmer(id) {
     if (!id || isNaN(id)) {
@@ -236,6 +247,65 @@
     } catch (error) {
         console.error("❌ שגיאה במחיקת חקלאי:", error);
         alert("❌ שגיאה במחיקת חקלאי: " + error.message);
+    }
+}
+        // 🔹 **הפעלת מצב עריכה עבור חקלאי ספציפי**
+        function enableEdit(id) {
+    document.getElementById(`name-${id}`).disabled = false;
+    document.getElementById(`farmName-${id}`).disabled = false;
+    document.getElementById(`telephone-${id}`).disabled = false;
+    document.getElementById(`email-${id}`).disabled = false;
+    document.getElementById(`address-${id}`).disabled = false;
+    document.getElementById(`quantity-${id}`).disabled = false;
+    document.getElementById(`workingDays-${id}`).disabled = false;
+    document.getElementById(`briefExplanation-${id}`).disabled = false;
+    document.getElementById(`idNumber-${id}`).disabled = false;
+    document.getElementById(`startTime-${id}`).disabled = false;
+    document.getElementById(`endTime-${id}`).disabled = false;
+    document.getElementById(`volunteers-${id}`).disabled = false;
+    document.getElementById(`activ-${id}`).disabled = false;
+
+    document.getElementById(`edit-btn-${id}`).style.display = "none";
+    document.getElementById(`save-btn-${id}`).style.display = "inline-block";
+}
+        // 🔹 **שמירת השינויים ושליחה לשרת**
+        async function saveEdit(id) {
+    const updatedData = {
+        Name: document.getElementById(`name-${id}`).value,
+        FarmName: document.getElementById(`farmName-${id}`).value,
+        Telephone: document.getElementById(`telephone-${id}`).value,
+        Email: document.getElementById(`email-${id}`).value,
+        Address: document.getElementById(`address-${id}`).value,
+        QuantityOfDunams: document.getElementById(`quantity-${id}`).value,
+        WorkingDays: document.getElementById(`workingDays-${id}`).value,
+        BriefExplanationOfWork: document.getElementById(`briefExplanation-${id}`).value,
+        IDNumber: document.getElementById(`idNumber-${id}`).value,
+        RelevantStartTime: document.getElementById(`startTime-${id}`).value,
+        RelevantEndTime: document.getElementById(`endTime-${id}`).value,
+        DesiredVolunteersCount: document.getElementById(`volunteers-${id}`).value,
+        ACTIV: document.getElementById(`activ-${id}`).value
+    };
+
+    try {
+        console.log(`📡 שליחת עדכון ל-ID: ${id}`, updatedData);
+
+        const response = await fetch(`http://localhost:3333/farmerD/Update/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בעדכון: ${response.status}`);
+        }
+
+        alert("✅ חקלאי עודכן בהצלחה!");
+
+        getFarmers(); // רענון הנתונים בטבלה
+
+    } catch (error) {
+        console.error("❌ שגיאה בעדכון חקלאי:", error);
+        alert("❌ שגיאה בעדכון חקלאי: " + error.message);
     }
 }
 

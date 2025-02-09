@@ -1,13 +1,10 @@
-
 const express = require('express');
 const router = express.Router();
 const pool = require('../database'); // ייבוא pool בצורה נכונה
-
 // בדיקה אם `pool` קיים לפני כל פעולה
 if (!pool) {
     console.error("❌ pool אינו מוגדר! יש בעיה בחיבור למסד הנתונים.");
 }
-
 // 🔹 **שליפת כל החקלאים**
 router.get('/All', async (req, res) => {
     try {
@@ -68,7 +65,6 @@ router.get('/search', async (req, res) => {
       res.status(500).json({ message: "❌ שגיאה במסד הנתונים", error: err.message || err });
   }
 });
-
 // 🔹 **הוספת חקלאי חדש *
 router.post('/Add', async (req, res) => {
   const {
@@ -105,8 +101,6 @@ router.post('/Add', async (req, res) => {
       res.status(500).json({ message: "❌ שגיאה בהוספת חקלאי", error: err.message || err });
   }
 });
-
-
 // 🔹 **עדכון חקלאי לפי ID**
 router.patch('/Update/:id', async (req, res) => {
     const { id } = req.params;
@@ -117,6 +111,9 @@ router.patch('/Update/:id', async (req, res) => {
     } = req.body;
 
     try {
+        console.log(`📡 קבלת בקשת עדכון לחקלאי עם ID: ${id}`);
+        console.log("📡 נתונים חדשים:", req.body);
+
         const query = `
             UPDATE farmerdetails SET 
             Name = ?, FarmName = ?, Telephone = ?, Email = ?, Address = ?, 
@@ -125,15 +122,25 @@ router.patch('/Update/:id', async (req, res) => {
             WHERE ID = ?
         `;
 
-        await db_pool.execute(query, [Name, FarmName, Telephone, Email, Address, QuantityOfDunams, WorkingDays,
-            BriefExplanationOfWork, IDNumber, RelevantStartTime, RelevantEndTime, DesiredVolunteersCount, ACTIV, id]);
+        const [result] = await pool.query(query, [
+            Name, FarmName, Telephone, Email, Address, QuantityOfDunams, WorkingDays,
+            BriefExplanationOfWork, IDNumber, RelevantStartTime, RelevantEndTime, DesiredVolunteersCount, ACTIV, id
+        ]);
 
-        res.status(200).send('✅ חקלאי עודכן בהצלחה');
+        console.log("✅ תוצאות העדכון:", result);
+
+        if (result.affectedRows === 0) {
+            console.log("⚠️ חקלאי לא נמצא או שלא נעשה שינוי");
+            return res.status(404).json({ message: "⚠️ חקלאי לא נמצא או שלא נעשה שינוי" });
+        }
+
+        res.status(200).json({ message: "✅ חקלאי עודכן בהצלחה!" });
+
     } catch (err) {
-        return res.status(500).send('Database error');
+        console.error("❌ Database Error:", err);
+        return res.status(500).json({ message: "❌ שגיאה בעדכון החקלאי", error: err.message });
     }
 });
-
 // 🔹 **מחיקת חקלאי לפי ID**
 router.delete('/Delete/:id', async (req, res) => {
   const { id } = req.params;
@@ -163,6 +170,4 @@ router.delete('/Delete/:id', async (req, res) => {
       return res.status(500).json({ message: "❌ שגיאה במסד הנתונים", error: err.message });
   }
 });
-
-
 module.exports = router;
