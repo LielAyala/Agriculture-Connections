@@ -7,12 +7,8 @@ app.use(cors());
 // חיבור למסד הנתונים
 const db_pool = require('./database').pool;
 const path = require('path');
-// הגדרת קבצים סטטיים מהתיקייה pront
+// הגדרת קבצים סטטיים מהתיקייה pront כל הקבצים ב-pront/ יהיו זמינים
 app.use(express.static(path.join(__dirname, 'pront')));
-
-
-
-
 
 
 
@@ -40,7 +36,6 @@ db_pool.getConnection((err, connection) => {
 });
 
 console.log('Database module path:', path.resolve('./database'));
-//const db_pool = require('./database').pool;
 
 
 // הערכים הישירים
@@ -85,22 +80,22 @@ app.get('/register', (req, res) => {
     console.log(path.join(__dirname, '/pront/register.html')); // יראה את הנתיב המלא של הקובץ
     res.sendFile(path.join(__dirname, '/pront/register.html'));
 });
-
-
 app.get('/files/upload', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'uploadF.html')); // התאמה למיקום בפועל
 });
-
 // הגדרת נתיב לדף ההתחברות
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '/pront/login.html')); // הצגת דף ה-HTML של ההתחברות
 });
-
-//נתיב לחקלאי 
 // נתיב להצגת דף ניהול החקלאים
 app.get('/farmers', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'farmers.html'));
 });
+//נתיב להצגת קבוצות
+app.get('/grups', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pront', 'groups.html'));
+});
+
 
 // גישה לנתיב בסיסי
 app.get('/', (req, res) => {

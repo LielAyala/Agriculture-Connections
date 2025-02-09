@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>ניהול קבוצות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            padding: 20px;
+        }
+        label, input, button {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: right;
+        }
+        th {
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 ניהול קבוצות</h1>
+    
+    <button onclick="getGroups()">📥 טען רשימת קבוצות</button>
+    <h2>🔍 חיפוש קבוצה</h2>
+    <input type="text" id="searchQuery" placeholder="שם קבוצה">
+    <button onclick="searchGroups()">🔎 חפש</button>
+    <div id="searchResults"></div>
+<!-- הוספת קבוצה חדשה  -->
+<h2>➕ הוספת קבוצה חדשה</h2>
+<form id="addGroupForm">
+    <label>אימייל:</label> <input type="email" id="addEmail" required>
+    <label>מכינה:</label> <input type="number" id="addIsPreparatorySchool" required>
+    <label>שם קבוצה:</label> <input type="text" id="addName" required>
+    <label>אחראי:</label> <input type="text" id="addNameOfResponsible" required>
+    <label>טלפון:</label> <input type="text" id="addPhone" required>
+    <label>כמות חברים:</label> <input type="number" id="addGroupQuantity" required>
+    <label>טווח תאריכים:</label> <input type="date" id="addDateRange" required>
+    <label>שעת התחלה:</label> <input type="time" id="addRelevantStartTime" required>
+    <label>שעת סיום:</label> <input type="time" id="addRelevantEndTime" required>
+    <label>אזור מועדף:</label> <input type="text" id="addPreferredArea" required>
+    <label>טווח גילאים:</label> <input type="text" id="addAgeRange" required>
+    <label>התעניינות בהתנדבות קבועה:</label> <input type="number" id="addPermanentVolunteeringInterest" required>
+    <label>סטטוס (פעיל/לא פעיל):</label> <input type="number" id="addACTIV" required>
+    <button type="submit">➕ הוסף קבוצה</button>
+</form>
+
+    <table id="groupsTable">
+        <thead>
+            <tr>
+                <th>אימייל</th>
+                <th>מכינה</th>
+                <th>שם קבוצה</th>
+                <th>אחראי</th>
+                <th>טלפון</th>
+                <th>כמות חברים</th>
+                <th>טווח תאריכים</th>
+                <th>שעת התחלה</th>
+                <th>שעת סיום</th>
+                <th>אזור מועדף</th>
+                <th>טווח גילאים</th>
+                <th>מתעניינים בהתנדבות קבועה</th>
+                <th>סטטוס (פעיל/לא פעיל)</th>
+                <th>📝 ערוך</th>
+                <th>🗑️ מחק</th>
+            </tr>
+        </thead>
+        <tbody></tbody> <!-- כאן יוצגו הנתונים -->
+    </table>
+    
+</body>
+<script>
+    // הצגת כל הקבוצות 
+ async function getGroups() {
+    try {
+        console.log("📡 שליחת בקשה לטעינת כל הקבוצות...");
+        
+        const response = await fetch("http://localhost:3333/groupD/all");
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בשרת: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ נתונים שהתקבלו:", data);
+
+        const tableBody = document.querySelector("#groupsTable tbody");
+        tableBody.innerHTML = ""; // מנקה את הטבלה
+
+        data.forEach(group => {
+            const row = `<tr id="row-${group.ID}">
+                <td><input type="email" value="${group.Email}" id="email-${group.ID}" disabled></td>
+                <td><input type="number" value="${group.IsPreparatorySchool}" id="prep-${group.ID}" disabled></td>
+                <td><input type="text" value="${group.Name}" id="name-${group.ID}" disabled></td>
+                <td><input type="text" value="${group.NameOfResponsible}" id="responsible-${group.ID}" disabled></td>
+                <td><input type="text" value="${group.Phone}" id="phone-${group.ID}" disabled></td>
+                <td><input type="number" value="${group.GroupQuantity}" id="quantity-${group.ID}" disabled></td>
+                <td><input type="date" value="${group.DateRange}" id="dateRange-${group.ID}" disabled></td>
+                <td><input type="time" value="${group.RelevantStartTime}" id="startTime-${group.ID}" disabled></td>
+                <td><input type="time" value="${group.RelevantEndTime}" id="endTime-${group.ID}" disabled></td>
+                <td><input type="text" value="${group.PreferredArea}" id="area-${group.ID}" disabled></td>
+                <td><input type="text" value="${group.AgeRange}" id="ageRange-${group.ID}" disabled></td>
+                <td><input type="number" value="${group.PermanentVolunteeringInterest}" id="volunteerInterest-${group.ID}" disabled></td>
+                <td><input type="number" value="${group.ACTIV}" id="activ-${group.ID}" disabled></td>
+                <td>
+                    <button onclick="enableEdit(${group.ID})">📝 ערוך</button>
+                    <button onclick="saveEdit(${group.ID})" id="save-btn-${group.ID}" style="display:none;">💾 שמור</button>
+                </td>
+                <td><button onclick="deleteGroup(${group.ID})">🗑️ מחק</button></td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+
+    } catch (error) {
+        console.error("❌ שגיאה בטעינת הקבוצות:", error);
+        alert("❌ שגיאה בטעינת רשימת הקבוצות");
+    }
+}
+ //חיפוש 
+ async function searchGroups() {
+    try {
+        const query = document.getElementById("searchQuery").value.trim();
+
+        if (!query) {
+            alert("❌ נא להזין שם קבוצה או שם אחראי לחיפוש!");
+            return;
+        }
+
+        console.log(`📡 שליחת בקשה לחיפוש קבוצות עם השם או שם האחראי: "${query}"`);
+
+        const response = await fetch(`http://localhost:3333/groupD/search?query=${query}`);
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בשרת: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("✅ תוצאות שהתקבלו:", data);
+
+        const resultsDiv = document.getElementById("searchResults");
+        resultsDiv.innerHTML = ""; 
+
+        if (data.length === 0) {
+            resultsDiv.innerHTML = `<p>❌ לא נמצאו קבוצות עם השם "${query}"</p>`;
+            return;
+        }
+
+        data.forEach(group => {
+            resultsDiv.innerHTML += `<p>👥 <strong>${group.Name}</strong> - אחראי: ${group.NameOfResponsible}, טלפון: ${group.Phone}</p>`;
+        });
+
+    } catch (error) {
+        console.error("❌ שגיאה בחיפוש קבוצות:", error);
+        alert("❌ שגיאה בחיפוש קבוצות: " + error.message);
+    }
+}
+
+//הוספת קבוצה 
+document.getElementById("addGroupForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const newGroup = {
+        Email: document.getElementById("addEmail").value || null,
+        IsPreparatorySchool: document.getElementById("addIsPreparatorySchool").value || 0,
+        Name: document.getElementById("addName").value,
+        NameOfResponsible: document.getElementById("addNameOfResponsible").value,
+        Phone: document.getElementById("addPhone").value,
+        GroupQuantity: document.getElementById("addGroupQuantity").value || 0,
+        DateRange: document.getElementById("addDateRange").value || null,
+        RelevantStartTime: document.getElementById("addRelevantStartTime").value || "00:00",
+        RelevantEndTime: document.getElementById("addRelevantEndTime").value || "00:00",
+        PreferredArea: document.getElementById("addPreferredArea").value || null,
+        AgeRange: document.getElementById("addAgeRange").value || null,
+        PermanentVolunteeringInterest: document.getElementById("addPermanentVolunteeringInterest").value || 0,
+        ACTIV: document.getElementById("addACTIV").value || 0
+    };
+
+    console.log("📡 שליחת בקשה להוספת קבוצה חדשה:", newGroup);
+
+    try {
+        const response = await fetch("http://localhost:3333/groupD/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newGroup)
+        });
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בהוספת קבוצה: ${response.status}`);
+        }
+
+        alert("✅ קבוצה נוספה בהצלחה!");
+        document.getElementById("addGroupForm").reset();
+        getGroups(); // רענון הרשימה
+
+    } catch (error) {
+        console.error("❌ שגיאה בהוספת קבוצה:", error);
+        alert("❌ שגיאה בהוספת קבוצה: " + error.message);
+    }
+});
+// עדכון
+function enableEdit(id) {
+    document.getElementById(`email-${id}`).disabled = false;
+    document.getElementById(`prep-${id}`).disabled = false;
+    document.getElementById(`name-${id}`).disabled = false;
+    document.getElementById(`responsible-${id}`).disabled = false;
+    document.getElementById(`phone-${id}`).disabled = false;
+    document.getElementById(`quantity-${id}`).disabled = false;
+    document.getElementById(`dateRange-${id}`).disabled = false;
+    document.getElementById(`startTime-${id}`).disabled = false;
+    document.getElementById(`endTime-${id}`).disabled = false;
+    document.getElementById(`area-${id}`).disabled = false;
+    document.getElementById(`ageRange-${id}`).disabled = false;
+    document.getElementById(`volunteerInterest-${id}`).disabled = false;
+    document.getElementById(`activ-${id}`).disabled = false;
+
+    document.getElementById(`save-btn-${id}`).style.display = "inline-block";
+}
+
+//שמירת העדכון 
+async function saveEdit(id) {
+    const updatedData = {
+        Email: document.getElementById(`email-${id}`).value,
+        IsPreparatorySchool: document.getElementById(`prep-${id}`).value,
+        Name: document.getElementById(`name-${id}`).value,
+        NameOfResponsible: document.getElementById(`responsible-${id}`).value,
+        Phone: document.getElementById(`phone-${id}`).value,
+        GroupQuantity: document.getElementById(`quantity-${id}`).value,
+        DateRange: document.getElementById(`dateRange-${id}`).value,
+        RelevantStartTime: document.getElementById(`startTime-${id}`).value,
+        RelevantEndTime: document.getElementById(`endTime-${id}`).value,
+        PreferredArea: document.getElementById(`area-${id}`).value,
+        AgeRange: document.getElementById(`ageRange-${id}`).value,
+        PermanentVolunteeringInterest: document.getElementById(`volunteerInterest-${id}`).value,
+        ACTIV: document.getElementById(`activ-${id}`).value
+    };
+
+    try {
+        console.log(`📡 שליחת עדכון ל-ID: ${id}`, updatedData);
+
+        const response = await fetch(`http://localhost:3333/groupD/edit/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`❌ שגיאה בעדכון: ${response.status}`);
+        }
+
+        alert("✅ קבוצה עודכנה בהצלחה!");
+        getGroups();
+
+    } catch (error) {
+        console.error("❌ שגיאה בעדכון קבוצה:", error);
+        alert("❌ שגיאה בעדכון קבוצה: " + error.message);
+    }
+}
+//מחיקה 
+    async function deleteGroup(id) {
+        if (!confirm("🗑️ האם אתה בטוח שברצונך למחוק את הקבוצה?")) return;
+
+        await fetch(`http://localhost:3333/groupD/delete/${id}`, { method: "DELETE" });
+
+        alert("✅ קבוצה נמחקה בהצלחה!");
+        getGroups(); 
+    }
+</script>
+</html>
