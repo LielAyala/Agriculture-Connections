@@ -1,59 +1,97 @@
-// הגדרת router עבור SystemMetrics
 const express = require('express');
-const db_pool = require('../database').pool;
-const systemMetricsRouter = express.Router();
+const router = express.Router();
+const db = require('../database'); // חיבור למסד הנתונים
 
-systemMetricsRouter.get('/A', (req, res) => {
-    res.send('מערכת ');
-    console.log("  מערכת  ");
-  });
-
-// קריאת כל הפרטים של SystemMetrics
-systemMetricsRouter.get('/all', (req, res) => {
-    const query = "SELECT * FROM `SystemMetrics`";
-    db_pool.query(query, (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: "Database error", error: err });
-        }
-        res.status(200).json(rows);
-    });
+// 📋 **שליפת כל הנתונים מהמערכת**
+router.get('/all', async (req, res) => {
+    try {
+        const [results] = await db.query("SELECT * FROM systemmetrics");
+        res.status(200).json(results);
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה במסד הנתונים", error: err.message });
+    }
 });
 
-// הוספת SystemMetrics חדש
-systemMetricsRouter.post('/add', (req, res) => {
-    const { Date, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft, GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID } = req.body;
-    const query = `INSERT INTO SystemMetrics (Date, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft, GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    db_pool.query(query, [Date, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft, GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error adding system metrics", error: err });
-        }
-        res.status(200).json({ message: "System metrics added successfully" });
-    });
+// ➕ **הוספת מדד חדש**
+router.post('/add', async (req, res) => {
+    const {
+        Date, SummaryDate, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered,
+        FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft,
+        GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID
+    } = req.body;
+
+    try {
+        const query = `
+            INSERT INTO systemmetrics 
+            (Date, SummaryDate, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered,
+            FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft,
+            GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        await db.query(query, [Date, SummaryDate, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance,
+            FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft,
+            GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID]);
+
+        res.status(201).json({ message: "✅ מדד מערכת נוסף בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה בהוספת מדד מערכת", error: err.message });
+    }
 });
 
-// עדכון SystemMetrics
-systemMetricsRouter.patch('/edit', (req, res) => {
-    const { ID, Date, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft, GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID } = req.body;
-    const query = `UPDATE SystemMetrics SET Date = ?, FarmersReceivedAssistance = ?, FarmersDidNotReceiveAssistance = ?, FarmersRegistered = ?, FarmersSentForm = ?, FarmersSentStatement = ?, GroupsRegistered = ?, GroupsLeft = ?, GroupsWantPermanentVolunteering = ?, QuantityOfDunamsForContract = ?, FarmerID = ?, GroupID = ?, VolunteerID = ? WHERE ID = ?`;
-    db_pool.query(query, [Date, FarmersReceivedAssistance, FarmersDidNotReceiveAssistance, FarmersRegistered, FarmersSentForm, FarmersSentStatement, GroupsRegistered, GroupsLeft, GroupsWantPermanentVolunteering, QuantityOfDunamsForContract, FarmerID, GroupID, VolunteerID, ID], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error updating system metrics", error: err });
+// 🔄 **עדכון מדד קיים**
+// 🔄 **עדכון מדד קיים**
+router.patch('/edit/:id', async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+
+    try {
+        // בדיקת קיום ה-ID
+        const [existing] = await db.query("SELECT * FROM systemmetrics WHERE ID = ?", [id]);
+        if (existing.length === 0) {
+            return res.status(404).json({ message: "⚠️ המדד לא נמצא לעדכון" });
         }
-        res.status(200).json({ message: "System metrics updated successfully" });
-    });
+
+        // יצירת שאילתת עדכון דינמית
+        let updateQuery = "UPDATE systemmetrics SET ";
+        let updateValues = [];
+        Object.keys(updates).forEach((key, index) => {
+            updateQuery += `${key} = ?${index < Object.keys(updates).length - 1 ? ', ' : ' '}`;
+            updateValues.push(updates[key]);
+        });
+        updateQuery += "WHERE ID = ?";
+        updateValues.push(id);
+
+        await db.query(updateQuery, updateValues);
+
+        res.status(200).json({ message: "✅ מדד עודכן בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה בעדכון מדד", error: err.message });
+    }
 });
 
-// מחיקת SystemMetrics
-systemMetricsRouter.delete('/delete', (req, res) => {
-    const { ID } = req.body;
-    const query = "DELETE FROM SystemMetrics WHERE ID = ?";
-    db_pool.query(query, [ID], (err) => {
-        if (err) {
-            return res.status(500).json({ message: "Error deleting system metrics", error: err });
+
+// 🗑️ **מחיקת מדד לפי ID**
+// 🗑️ **מחיקת מדד לפי ID**
+router.delete('/delete/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [existing] = await db.query("SELECT * FROM systemmetrics WHERE ID = ?", [id]);
+        if (existing.length === 0) {
+            return res.status(404).json({ message: "⚠️ המדד לא נמצא למחיקה" });
         }
-        res.status(200).json({ message: "System metrics deleted successfully" });
-    });
+
+        await db.query("DELETE FROM systemmetrics WHERE ID = ?", [id]);
+
+        res.status(200).json({ message: "✅ מדד נמחק בהצלחה!" });
+    } catch (err) {
+        console.error("❌ Database Error:", err);
+        res.status(500).json({ message: "❌ שגיאה במחיקת מדד", error: err.message });
+    }
 });
 
-module.exports = systemMetricsRouter;
+module.exports = router;

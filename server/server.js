@@ -99,6 +99,9 @@ app.get('/grups', (req, res) => {
 app.get('/groupVolunteerMapping', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'groupVolunteerMapping.html'));
 });
+app.get('/systemMetrics', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pront', 'systemMetrics.html'));
+});
 
 // גישה לנתיב בסיסי
 app.get('/', (req, res) => {
