@@ -51,12 +51,12 @@ console.log(config);
 // הגדרת השרת להקשיב על הפורט 3333
 const PORT = 3333; // הגדרת הפורט החדש
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log('Database Connection Info:', {
-      host: config.HOST,
-      user: config.USER,
-      database: config.DATABASE
-  });
+    console.log(`Server is running at http://localhost:${PORT}`);
+//     console.log('Database Connection Info:', {
+//       host: config.HOST,
+//       user: config.USER,
+//       database: config.DATABASE
+//   });
 });
 
 // שימוש ב-parser של express לקבלת נתונים בגוף הבקשה (req.body)
@@ -94,6 +94,7 @@ app.get('/farmers', (req, res) => {
 //נתיב להצגת קבוצות
 app.get('/grups', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'groups.html'));
+    
 });
 //נתיב לקביעת התנדבות 
 app.get('/groupVolunteerMapping', (req, res) => {
