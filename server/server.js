@@ -14,7 +14,6 @@ app.use(express.static(path.join(__dirname, 'pront')));
 
 
 //ייבוא של ראוטרים
-const adminDEMO = require('./routes/system_administrator');// ייבוא ה-router של המנהל
 const farmerDetailsR=require('./routes/farmerDetails');
 const filesR=require('./routes/files');
 const groupDetailsR=require('./routes/groupDetails');
@@ -65,7 +64,6 @@ app.use(express.json());
 
 // חיבור לנתיב  
 // כל הבקשות ל-'/***' ינותבו ל-router הרלבנטי
-app.use("/admin", adminDEMO);
 app.use("/farmerD",farmerDetailsR);
 app.use("/files",filesR);
 app.use("/groupD",groupDetailsR);
@@ -73,20 +71,32 @@ app.use("/groupVolunteerMapping",groupVolunteerMappingR);
 app.use("/systemMetrics",systemMetricsR);
 app.use("/users",usersR);
 app.use("/volunteerAssignments",volunteerAssignmentsR);
+app.use((err, req, res, next) => {
+    console.error("❌ שגיאה:", err);
+    res.status(500).json({ message: "Internal Server Error", error: err.message });
+});
 
+app.get('/files/upload', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pront', 'uploadF.html')); // התאמה למיקום בפועל
+});
 // הגדרת נתיב לדף הרישום
 app.get('/register', (req, res) => {
     console.log(__dirname);  // יפלט את המיקום של הקובץ שמריץ את השרת
     console.log(path.join(__dirname, '/pront/register.html')); // יראה את הנתיב המלא של הקובץ
     res.sendFile(path.join(__dirname, '/pront/register.html'));
 });
-app.get('/files/upload', (req, res) => {
-    res.sendFile(path.join(__dirname, 'pront', 'uploadF.html')); // התאמה למיקום בפועל
-});
 // הגדרת נתיב לדף ההתחברות
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '/pront/login.html')); // הצגת דף ה-HTML של ההתחברות
 });
+app.get('/farmer/dashboard', (req, res) => {
+    res.send('🔶 ברוך הבא חקלאי! זה האזור האישי שלך');
+});
+
+app.get('/group/dashboard', (req, res) => {
+    res.send('🟦 ברוכה הבאה קבוצת מתנדבים! זה האזור האישי שלכם');
+});
+
 // נתיב להצגת דף ניהול החקלאים
 app.get('/farmers', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'farmers.html'));
@@ -103,6 +113,7 @@ app.get('/groupVolunteerMapping', (req, res) => {
 app.get('/systemMetrics', (req, res) => {
     res.sendFile(path.join(__dirname, 'pront', 'systemMetrics.html'));
 });
+
 
 // גישה לנתיב בסיסי
 app.get('/', (req, res) => {

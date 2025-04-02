@@ -7,6 +7,7 @@
 </head>
 <body>
     <h1>התחבר למערכת</h1>
+
     <form id="loginForm">
         <label for="Username">שם משתמש:</label>
         <input type="text" id="Username" name="Username" required><br><br>
@@ -15,54 +16,62 @@
         <input type="password" id="Password" name="Password" required><br><br>
 
         <label>בחר תפקיד:</label><br>
-        <input type="radio" id="farmer" name="Role" value="farmer" required>
+        <input type="radio" id="farmer" name="Role" value="Farmer" required>
         <label for="farmer">חקלאי</label><br>
 
-        <input type="radio" id="group" name="Role" value="group">
-        <label for="group">קבוצה</label><br>
-
+        <input type="radio" id="group" name="Role" value="Group">
+        <label for="group">קבוצה</label><br><br>
 
         <button type="submit">התחבר</button>
     </form>
 
     <script>
-        // כשלחצן ההתחברות נלחץ
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // מונע רענון הדף
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+            const Username = document.getElementById("Username").value;
+            const Password = document.getElementById("Password").value;
+            const Role = document.querySelector('input[name="Role"]:checked')?.value;
 
-            // שליחה לשרת באמצעות Fetch
-            fetch('http://localhost:3333/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message); // הצגת הודעה לאחר התחברות
-                // לאחר התחברות מוצלחת
-            if (data.message === "Login successful") {
-             const userRole = data.user.Role.toLowerCase(); // נניח שהתפקידים הם farmer או group
-
-            if (userRole === "farmer") {
-             window.location.href = "/farmer/dashboard";
-            } else if (userRole === "group") {
-             window.location.href = "/group/dashboard";
-            } else {
-             alert("אין ניתוב מוגדר לתפקיד הזה");
+            if (!Role) {
+                alert("יש לבחור תפקיד (חקלאי או קבוצה)");
+                return;
             }
+
+            const data = { Username, Password, Role };
+            console.log("🔍 נשלח לשרת:", data);
+
+            try {
+                const response = await fetch('http://localhost:3333/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log("📥 התקבלה תשובה מהשרת:", result);
+
+                alert(result.message);
+
+                if (result.message === "Login successful") {
+                    const userRole = result.user.Role;
+                    console.log("➡️ מפנה לפי תפקיד:", userRole);
+
+                    if (userRole === "farmer") {
+                        window.location.href = "/farmer/dashboard";
+                    } else if (userRole === "group") {
+                        window.location.href = "/group/dashboard";
+                    } else {
+                        alert("⚠️ אין ניתוב מוגדר לתפקיד הזה: " + userRole);
+                    }
+                }
+
+            } catch (error) {
+                console.error("❌ שגיאה ב-fetch:", error);
+                alert("שגיאה בהתחברות לשרת");
             }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
         });
     </script>
 </body>
