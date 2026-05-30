@@ -1,0 +1,74 @@
+<%- include('partials/header') %>
+
+<main class="dashboard">
+    <h2>דשבורד חקלאי</h2>
+
+    <div class="dashboard-grid">
+        <!-- פרופיל -->
+        <section class="card">
+            <h3>הפרופיל שלי</h3>
+            <div id="profileInfo"><p class="loading">טוען...</p></div>
+            <button class="btn btn-secondary" onclick="toggleEditProfile()">ערוך פרופיל</button>
+            <form id="editProfileForm" class="hidden">
+                <input type="text"   id="name"      placeholder="שם מלא">
+                <input type="tel"    id="phone"     placeholder="טלפון">
+                <input type="text"   id="location"  placeholder="מיקום">
+                <input type="number" id="dunams"    placeholder="דונמים" min="0">
+                <input type="text"   id="crop_type" placeholder="סוג גידול">
+                <button type="submit" class="btn btn-primary">שמור</button>
+            </form>
+        </section>
+
+        <!-- יצירת משימה חדשה -->
+        <section class="card">
+            <h3>פרסם משימה חדשה</h3>
+            <div id="taskMsg" class="msg hidden"></div>
+            <form id="newTaskForm">
+                <div class="form-group">
+                    <label>כותרת</label>
+                    <input type="text" id="title" required placeholder="תיאור קצר">
+                </div>
+                <div class="form-group">
+                    <label>פירוט</label>
+                    <textarea id="description" rows="3" placeholder="פרטים נוספים..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>סוג עבודה</label>
+                    <select id="work_type" required>
+                        <option value="">בחר...</option>
+                        <option value="קציר">קציר</option>
+                        <option value="שתילה">שתילה</option>
+                        <option value="השקיה">השקיה</option>
+                        <option value="ניכוש">ניכוש</option>
+                        <option value="קטיף">קטיף</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>מספר מתנדבים דרוש</label>
+                    <input type="number" id="volunteers_needed" value="1" min="1">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>תאריך התחלה</label>
+                        <input type="date" id="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>תאריך סיום</label>
+                        <input type="date" id="end_date" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">פרסם משימה</button>
+            </form>
+        </section>
+
+        <!-- המשימות שלי -->
+        <section class="card full-width">
+            <h3>המשימות שלי</h3>
+            <div id="myTasks"><p class="loading">טוען...</p></div>
+        </section>
+    </div>
+</main>
+
+<script src="/js/farmer-dashboard.js"></script>
+<%- include('partials/footer') %>

@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+<main class="dashboard">
+    <h2>דשבורד עמותה</h2>
+
+    <!-- סטטיסטיקות -->
+    <section class="stats-row" id="statsRow">
+        <div class="stat-card"><span id="totalFarmers">-</span><p>חקלאים רשומים</p></div>
+        <div class="stat-card"><span id="totalVolunteers">-</span><p>מתנדבים רשומים</p></div>
+        <div class="stat-card"><span id="openTasks">-</span><p>משימות פתוחות</p></div>
+        <div class="stat-card"><span id="completedTasks">-</span><p>משימות שהושלמו</p></div>
+        <div class="stat-card"><span id="farmersHelped">-</span><p>חקלאים שקיבלו סיוע</p></div>
+        <div class="stat-card"><span id="farmersWaiting">-</span><p>חקלאים ממתינים</p></div>
+    </section>
+
+    <!-- כל המשימות -->
+    <section class="card">
+        <div class="card-header">
+            <h3>כל המשימות</h3>
+            <select id="filterStatus" onchange="loadAllTasks()">
+                <option value="">הכל</option>
+                <option value="open">פתוח</option>
+                <option value="assigned">שובץ</option>
+                <option value="completed">הושלם</option>
+                <option value="cancelled">בוטל</option>
+            </select>
+        </div>
+        <div id="allTasks"><p class="loading">טוען...</p></div>
+    </section>
+</main>
+
+<script src="/js/organization-dashboard.js"></script>
+<%- include('partials/footer') %>

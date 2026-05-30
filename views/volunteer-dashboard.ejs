@@ -1,0 +1,36 @@
+<%- include('partials/header') %>
+
+<main class="dashboard">
+    <h2>דשבורד מתנדב</h2>
+
+    <div class="dashboard-grid">
+        <!-- פרופיל -->
+        <section class="card">
+            <h3>הפרופיל שלי</h3>
+            <div id="profileInfo"><p class="loading">טוען...</p></div>
+            <button class="btn btn-secondary" onclick="toggleEditProfile()">ערוך פרופיל</button>
+            <form id="editProfileForm" class="hidden">
+                <input type="text"   id="name"       placeholder="שם מלא">
+                <input type="tel"    id="phone"      placeholder="טלפון">
+                <input type="number" id="group_size" placeholder="גודל קבוצה" min="1" value="1">
+                <input type="text"   id="skills"     placeholder="מיומנויות (מופרדות בפסיק)">
+                <button type="submit" class="btn btn-primary">שמור</button>
+            </form>
+        </section>
+
+        <!-- משימות זמינות -->
+        <section class="card">
+            <h3>משימות פתוחות</h3>
+            <div id="openTasks"><p class="loading">טוען...</p></div>
+        </section>
+
+        <!-- המשימות שלי -->
+        <section class="card full-width">
+            <h3>ההתנדבויות שלי</h3>
+            <div id="myTasks"><p class="loading">טוען...</p></div>
+        </section>
+    </div>
+</main>
+
+<script src="/js/volunteer-dashboard.js"></script>
+<%- include('partials/footer') %>

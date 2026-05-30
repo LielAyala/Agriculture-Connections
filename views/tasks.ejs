@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+
+<main class="tasks-page">
+    <div class="page-header">
+        <h2>משימות פתוחות</h2>
+        <div class="filters">
+            <select id="filterStatus" onchange="loadTasks()">
+                <option value="">כל הסטטוסים</option>
+                <option value="open">פתוח</option>
+                <option value="assigned">שובץ</option>
+                <option value="completed">הושלם</option>
+            </select>
+            <select id="filterType" onchange="loadTasks()">
+                <option value="">כל סוגי העבודה</option>
+                <option value="קציר">קציר</option>
+                <option value="שתילה">שתילה</option>
+                <option value="השקיה">השקיה</option>
+                <option value="ניכוש">ניכוש</option>
+                <option value="קטיף">קטיף</option>
+                <option value="אחר">אחר</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="tasksList" class="tasks-grid">
+        <p class="loading">טוען משימות...</p>
+    </div>
+</main>
+
+<script src="/js/tasks.js"></script>
+<%- include('partials/footer') %>
