@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+
+<main class="form-page">
+    <div class="form-container">
+        <h2>הרשמה למערכת</h2>
+        <div id="msg" class="msg hidden"></div>
+
+        <div class="role-tabs">
+            <button class="tab-btn active" onclick="selectRole('farmer')">חקלאי</button>
+            <button class="tab-btn" onclick="selectRole('volunteer')">מתנדב</button>
+            <button class="tab-btn" onclick="selectRole('organization')">עמותה</button>
+        </div>
+
+        <form id="registerForm">
+            <input type="hidden" id="role" value="farmer">
+
+            <div class="form-group">
+                <label>שם משתמש</label>
+                <input type="text" id="username" required placeholder="שם משתמש">
+            </div>
+            <div class="form-group">
+                <label>אימייל</label>
+                <input type="email" id="email" required placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>סיסמה</label>
+                <input type="password" id="password" required placeholder="לפחות 6 תווים">
+            </div>
+            <div class="form-group">
+                <label>שם מלא</label>
+                <input type="text" id="name" required placeholder="שם מלא">
+            </div>
+            <div class="form-group">
+                <label>טלפון (10 ספרות)</label>
+                <input type="tel" id="phone" required placeholder="0501234567">
+            </div>
+
+            <!-- שדות חקלאי -->
+            <div id="farmerFields">
+                <div class="form-group">
+                    <label>מיקום החווה</label>
+                    <input type="text" id="location" placeholder="עיר / אזור">
+                </div>
+                <div class="form-group">
+                    <label>מספר דונמים</label>
+                    <input type="number" id="dunams" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>סוג גידול</label>
+                    <input type="text" id="crop_type" placeholder="למשל: עגבניות, ענבים">
+                </div>
+            </div>
+
+            <!-- שדות מתנדב -->
+            <div id="volunteerFields" class="hidden">
+                <div class="form-group">
+                    <label>גודל קבוצה (1 = יחיד)</label>
+                    <input type="number" id="group_size" value="1" min="1">
+                </div>
+            </div>
+
+            <!-- שדות עמותה -->
+            <div id="orgFields" class="hidden">
+                <div class="form-group">
+                    <label>כתובת</label>
+                    <input type="text" id="address" placeholder="כתובת העמותה">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">הרשמה</button>
+        </form>
+        <p class="form-link">כבר רשום? <a href="/login">התחבר כאן</a></p>
+    </div>
+</main>
+
+<script src="/js/register.js"></script>
+<%- include('partials/footer') %>
