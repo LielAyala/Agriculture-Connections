@@ -220,3 +220,25 @@ tr:hover td { background: #f9fafb; }
 
 /* FORM NOTE */
 .form-note { background: #e8f5e9; padding: 12px; border-radius: 8px; color: #2d7a3a; font-size: 0.9rem; }
+
+/* CLICKABLE STAT CARD */
+.stat-card.clickable {
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.stat-card.clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(45,122,58,0.2);
+    border-top-color: #1a5c28;
+}
+.stat-card small {
+    display: block;
+    font-size: 0.72rem;
+    color: #2d7a3a;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+/* BADGES */
+.badge-waiting { color: #e53935; font-weight: bold; }
+.badge-helped  { color: #2d7a3a; font-weight: bold; }

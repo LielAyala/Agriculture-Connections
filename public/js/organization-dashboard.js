@@ -1,24 +1,68 @@
 let currentPeriod = 'all';
+let allFarmersData = [];
 
+// --- תקופה ---
 function setPeriod(period, btn) {
     currentPeriod = period;
     document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
     loadReport();
     loadAllTasks();
     loadActiveVolunteers();
     loadFarmersStatus();
 }
 
+// --- טאבים ---
 function showTab(tab, btn) {
     document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) {
+        btn.classList.add('active');
+    } else {
+        const b = document.getElementById(`btn-${tab}`);
+        if (b) b.classList.add('active');
+    }
     document.getElementById('tab-tasks').classList.add('hidden');
     document.getElementById('tab-volunteers').classList.add('hidden');
     document.getElementById('tab-farmers').classList.add('hidden');
     document.getElementById(`tab-${tab}`).classList.remove('hidden');
 }
 
+// --- לחיצה על קוביה - פילטר התנדבויות לפי סטטוס ---
+function filterAndShow(status) {
+    showTab('tasks', null);
+    document.getElementById('filterStatus').value = status;
+
+    const titles = { open: 'התנדבויות פתוחות', assigned: 'התנדבויות בתהליך', completed: 'התנדבויות שהושלמו' };
+    document.getElementById('tasksTitle').textContent = titles[status] || 'כל ההתנדבויות';
+
+    loadAllTasks();
+    scrollToData();
+}
+
+// --- לחיצה על קוביה - פילטר חקלאים ---
+function showFarmersFiltered(filter) {
+    showTab('farmers', null);
+    document.getElementById('filterFarmers').value = filter;
+    applyFarmerFilter();
+    scrollToData();
+}
+
+function applyFarmerFilter() {
+    const filter = document.getElementById('filterFarmers').value;
+    const titles = { all: 'סטטוס כל החקלאים', helped: 'חקלאים שקיבלו סיוע ✓', waiting: 'חקלאים ממתינים לסיוע ⚠️' };
+    document.getElementById('farmersTitle').textContent = titles[filter];
+
+    let rows = allFarmersData;
+    if (filter === 'helped')  rows = allFarmersData.filter(r => r.tasks_helped  > 0);
+    if (filter === 'waiting') rows = allFarmersData.filter(r => r.tasks_waiting > 0);
+    renderFarmers(rows);
+}
+
+function scrollToData() {
+    document.getElementById('viewTabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// --- טעינת סטטיסטיקות ---
 async function loadReport() {
     const res = await fetch(`/api/organizations/report?period=${currentPeriod}`);
     if (!res.ok) { window.location.href = '/login'; return; }
@@ -33,6 +77,7 @@ async function loadReport() {
     document.getElementById('farmersWaiting').textContent  = d.farmersWaiting;
 }
 
+// --- טעינת כל ההתנדבויות ---
 async function loadAllTasks() {
     const status = document.getElementById('filterStatus').value;
     let url = `/api/organizations/tasks?period=${currentPeriod}`;
@@ -42,7 +87,7 @@ async function loadAllTasks() {
     const tasks = await res.json();
 
     if (!tasks.length) {
-        document.getElementById('allTasks').innerHTML = '<p class="loading">אין התנדבויות</p>';
+        document.getElementById('allTasks').innerHTML = '<p class="loading">אין התנדבויות להצגה</p>';
         return;
     }
 
@@ -59,10 +104,10 @@ async function loadAllTasks() {
                         <td>${t.title}</td>
                         <td>${t.farmer_name}</td>
                         <td>${t.location}</td>
-                        <td>${t.volunteer_name || '-'}</td>
-                        <td>${t.group_size || '-'}</td>
+                        <td>${t.volunteer_name || '<span style="color:#aaa">טרם שובץ</span>'}</td>
+                        <td>${t.group_size     || '-'}</td>
                         <td>${formatDate(t.start_date)}</td>
-                        <td>${t.work_hours || '-'}</td>
+                        <td>${t.work_hours     || '-'}</td>
                         <td><span class="status-badge status-${t.status}">${translateStatus(t.status)}</span></td>
                     </tr>
                 `).join('')}
@@ -71,6 +116,7 @@ async function loadAllTasks() {
     `;
 }
 
+// --- קבוצות שיצאו ---
 async function loadActiveVolunteers() {
     const res  = await fetch(`/api/organizations/volunteers?period=${currentPeriod}`);
     const rows = await res.json();
@@ -104,12 +150,16 @@ async function loadActiveVolunteers() {
     `;
 }
 
+// --- סטטוס חקלאים ---
 async function loadFarmersStatus() {
     const res  = await fetch('/api/organizations/farmers');
-    const rows = await res.json();
+    allFarmersData = await res.json();
+    applyFarmerFilter();
+}
 
+function renderFarmers(rows) {
     if (!rows.length) {
-        document.getElementById('farmersStatus').innerHTML = '<p class="loading">אין חקלאים רשומים</p>';
+        document.getElementById('farmersStatus').innerHTML = '<p class="loading">אין חקלאים להצגה</p>';
         return;
     }
 
@@ -128,8 +178,12 @@ async function loadFarmersStatus() {
                         <td>${r.phone}</td>
                         <td>${r.dunams}</td>
                         <td>${r.crop_type || '-'}</td>
-                        <td>${r.tasks_waiting > 0 ? `<span style="color:#e53935;font-weight:bold">${r.tasks_waiting} ⚠️</span>` : '0'}</td>
-                        <td>${r.tasks_helped > 0  ? `<span style="color:#2d7a3a;font-weight:bold">${r.tasks_helped} ✓</span>` : '0'}</td>
+                        <td>${r.tasks_waiting > 0
+                            ? `<span class="badge-waiting">${r.tasks_waiting} ⚠️</span>`
+                            : '<span style="color:#aaa">0</span>'}</td>
+                        <td>${r.tasks_helped > 0
+                            ? `<span class="badge-helped">${r.tasks_helped} ✓</span>`
+                            : '<span style="color:#aaa">0</span>'}</td>
                     </tr>
                 `).join('')}
             </tbody>

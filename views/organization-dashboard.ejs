@@ -11,28 +11,56 @@
         <button class="period-btn"        onclick="setPeriod('day',  this)">היום</button>
     </div>
 
-    <!-- סטטיסטיקות -->
-    <section class="stats-row" id="statsRow">
-        <div class="stat-card"><span id="totalFarmers">-</span><p>חקלאים רשומים</p></div>
-        <div class="stat-card"><span id="totalVolunteers">-</span><p>מתנדבים רשומים</p></div>
-        <div class="stat-card"><span id="openTasks">-</span><p>התנדבויות פתוחות</p></div>
-        <div class="stat-card"><span id="assignedTasks">-</span><p>בתהליך</p></div>
-        <div class="stat-card"><span id="completedTasks">-</span><p>הושלמו</p></div>
-        <div class="stat-card"><span id="farmersHelped">-</span><p>חקלאים שקיבלו סיוע</p></div>
-        <div class="stat-card"><span id="farmersWaiting">-</span><p>ממתינים לסיוע</p></div>
+    <!-- קוביות סטטיסטיקה - כל אחת קליקבילית -->
+    <section class="stats-row">
+        <div class="stat-card clickable" onclick="showTab('farmers', null); scrollToData()" title="לחץ לפרטים">
+            <span id="totalFarmers">-</span>
+            <p>חקלאים רשומים</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="showTab('volunteers', null); scrollToData()" title="לחץ לפרטים">
+            <span id="totalVolunteers">-</span>
+            <p>מתנדבים רשומים</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="filterAndShow('open')" title="לחץ לפרטים">
+            <span id="openTasks">-</span>
+            <p>התנדבויות פתוחות</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="filterAndShow('assigned')" title="לחץ לפרטים">
+            <span id="assignedTasks">-</span>
+            <p>בתהליך</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="filterAndShow('completed')" title="לחץ לפרטים">
+            <span id="completedTasks">-</span>
+            <p>הושלמו</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="showFarmersFiltered('helped')" title="לחץ לפרטים">
+            <span id="farmersHelped">-</span>
+            <p>חקלאים שקיבלו סיוע</p>
+            <small>לפרטים ▼</small>
+        </div>
+        <div class="stat-card clickable" onclick="showFarmersFiltered('waiting')" title="לחץ לפרטים">
+            <span id="farmersWaiting">-</span>
+            <p>ממתינים לסיוע</p>
+            <small>לפרטים ▼</small>
+        </div>
     </section>
 
     <!-- טאבים -->
-    <div class="view-tabs">
-        <button class="view-btn active" onclick="showTab('tasks',      this)">כל ההתנדבויות</button>
-        <button class="view-btn"        onclick="showTab('volunteers', this)">קבוצות שיצאו</button>
-        <button class="view-btn"        onclick="showTab('farmers',    this)">סטטוס חקלאים</button>
+    <div class="view-tabs" id="viewTabs">
+        <button class="view-btn active" id="btn-tasks"      onclick="showTab('tasks',      this)">כל ההתנדבויות</button>
+        <button class="view-btn"        id="btn-volunteers" onclick="showTab('volunteers', this)">קבוצות שיצאו</button>
+        <button class="view-btn"        id="btn-farmers"    onclick="showTab('farmers',    this)">סטטוס חקלאים</button>
     </div>
 
     <!-- כל ההתנדבויות -->
     <section class="card" id="tab-tasks">
         <div class="card-header">
-            <h3>כל ההתנדבויות</h3>
+            <h3 id="tasksTitle">כל ההתנדבויות</h3>
             <select id="filterStatus" onchange="loadAllTasks()">
                 <option value="">הכל</option>
                 <option value="open">פתוח</option>
@@ -46,13 +74,20 @@
 
     <!-- קבוצות שיצאו -->
     <section class="card hidden" id="tab-volunteers">
-        <h3>קבוצות/מתנדבים שיצאו לשטח</h3>
+        <h3>קבוצות / מתנדבים שיצאו לשטח</h3>
         <div id="activeVolunteers"><p class="loading">טוען...</p></div>
     </section>
 
     <!-- סטטוס חקלאים -->
     <section class="card hidden" id="tab-farmers">
-        <h3>סטטוס חקלאים</h3>
+        <div class="card-header">
+            <h3 id="farmersTitle">סטטוס כל החקלאים</h3>
+            <select id="filterFarmers" onchange="applyFarmerFilter()">
+                <option value="all">כל החקלאים</option>
+                <option value="helped">קיבלו סיוע ✓</option>
+                <option value="waiting">ממתינים לסיוע ⚠️</option>
+            </select>
+        </div>
         <div id="farmersStatus"><p class="loading">טוען...</p></div>
     </section>
 </main>
