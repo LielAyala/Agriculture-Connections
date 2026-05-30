@@ -197,3 +197,26 @@ tr:hover td { background: #f9fafb; }
 /* PROFILE INFO */
 .profile-info p { margin-bottom: 8px; font-size: 0.95rem; }
 .profile-info span { font-weight: bold; }
+
+/* PERIOD TABS */
+.period-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.period-btn {
+    padding: 8px 18px; border: 2px solid #ccc;
+    background: white; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.period-btn.active { border-color: #2d7a3a; background: #2d7a3a; color: white; font-weight: bold; }
+
+/* VIEW TABS */
+.view-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.view-btn {
+    padding: 9px 20px; border: 2px solid #2d7a3a;
+    background: white; color: #2d7a3a; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+}
+.view-btn.active { background: #2d7a3a; color: white; font-weight: bold; }
+
+/* SEARCH FILTERS */
+.search-filters { display: flex; flex-direction: column; gap: 10px; }
+
+/* FORM NOTE */
+.form-note { background: #e8f5e9; padding: 12px; border-radius: 8px; color: #2d7a3a; font-size: 0.9rem; }

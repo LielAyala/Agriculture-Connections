@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     username   VARCHAR(50)  NOT NULL UNIQUE,
     email      VARCHAR(100) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
-    role       ENUM('farmer','volunteer','organization','admin') NOT NULL,
+    role       ENUM('farmer','volunteer','admin') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -31,26 +31,13 @@ CREATE TABLE IF NOT EXISTS volunteers (
     user_id      INT NOT NULL UNIQUE,
     name         VARCHAR(100) NOT NULL,
     phone        VARCHAR(15)  NOT NULL,
-    availability TEXT,
-    skills       TEXT,
     is_group     BOOLEAN DEFAULT FALSE,
     group_size   INT DEFAULT 1,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- טבלת עמותות
-CREATE TABLE IF NOT EXISTS organizations (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT NOT NULL UNIQUE,
-    name       VARCHAR(150) NOT NULL,
-    phone      VARCHAR(15),
-    address    VARCHAR(200),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- טבלת משימות
+-- טבלת התנדבויות
 CREATE TABLE IF NOT EXISTS tasks (
     id                INT AUTO_INCREMENT PRIMARY KEY,
     farmer_id         INT NOT NULL,
@@ -59,6 +46,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     description       TEXT,
     work_type         VARCHAR(100) NOT NULL,
     volunteers_needed INT DEFAULT 1,
+    work_hours        VARCHAR(50) DEFAULT '',
     start_date        DATE NOT NULL,
     end_date          DATE NOT NULL,
     status            ENUM('open','assigned','completed','cancelled') DEFAULT 'open',

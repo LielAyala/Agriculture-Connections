@@ -19,7 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             setTimeout(() => {
                 if (data.role === 'farmer')       window.location.href = '/farmer-dashboard';
                 else if (data.role === 'volunteer') window.location.href = '/volunteer-dashboard';
-                else if (data.role === 'organization') window.location.href = '/organization-dashboard';
+                else if (data.role === 'admin') window.location.href = '/organization-dashboard';
                 else window.location.href = '/';
             }, 1000);
         } else {

@@ -1,22 +1,38 @@
 <%- include('partials/header') %>
 
 <main class="dashboard">
-    <h2>דשבורד עמותה</h2>
+    <h2>דשבורד מנהל 🏢</h2>
+
+    <!-- פילטר תקופה -->
+    <div class="period-tabs">
+        <button class="period-btn active" onclick="setPeriod('all',  this)">הכל</button>
+        <button class="period-btn"        onclick="setPeriod('month',this)">חודש אחרון</button>
+        <button class="period-btn"        onclick="setPeriod('week', this)">שבוע אחרון</button>
+        <button class="period-btn"        onclick="setPeriod('day',  this)">היום</button>
+    </div>
 
     <!-- סטטיסטיקות -->
     <section class="stats-row" id="statsRow">
         <div class="stat-card"><span id="totalFarmers">-</span><p>חקלאים רשומים</p></div>
         <div class="stat-card"><span id="totalVolunteers">-</span><p>מתנדבים רשומים</p></div>
-        <div class="stat-card"><span id="openTasks">-</span><p>משימות פתוחות</p></div>
-        <div class="stat-card"><span id="completedTasks">-</span><p>משימות שהושלמו</p></div>
+        <div class="stat-card"><span id="openTasks">-</span><p>התנדבויות פתוחות</p></div>
+        <div class="stat-card"><span id="assignedTasks">-</span><p>בתהליך</p></div>
+        <div class="stat-card"><span id="completedTasks">-</span><p>הושלמו</p></div>
         <div class="stat-card"><span id="farmersHelped">-</span><p>חקלאים שקיבלו סיוע</p></div>
-        <div class="stat-card"><span id="farmersWaiting">-</span><p>חקלאים ממתינים</p></div>
+        <div class="stat-card"><span id="farmersWaiting">-</span><p>ממתינים לסיוע</p></div>
     </section>
 
-    <!-- כל המשימות -->
-    <section class="card">
+    <!-- טאבים -->
+    <div class="view-tabs">
+        <button class="view-btn active" onclick="showTab('tasks',      this)">כל ההתנדבויות</button>
+        <button class="view-btn"        onclick="showTab('volunteers', this)">קבוצות שיצאו</button>
+        <button class="view-btn"        onclick="showTab('farmers',    this)">סטטוס חקלאים</button>
+    </div>
+
+    <!-- כל ההתנדבויות -->
+    <section class="card" id="tab-tasks">
         <div class="card-header">
-            <h3>כל המשימות</h3>
+            <h3>כל ההתנדבויות</h3>
             <select id="filterStatus" onchange="loadAllTasks()">
                 <option value="">הכל</option>
                 <option value="open">פתוח</option>
@@ -26,6 +42,18 @@
             </select>
         </div>
         <div id="allTasks"><p class="loading">טוען...</p></div>
+    </section>
+
+    <!-- קבוצות שיצאו -->
+    <section class="card hidden" id="tab-volunteers">
+        <h3>קבוצות/מתנדבים שיצאו לשטח</h3>
+        <div id="activeVolunteers"><p class="loading">טוען...</p></div>
+    </section>
+
+    <!-- סטטוס חקלאים -->
+    <section class="card hidden" id="tab-farmers">
+        <h3>סטטוס חקלאים</h3>
+        <div id="farmersStatus"><p class="loading">טוען...</p></div>
     </section>
 </main>
 

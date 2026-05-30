@@ -1,25 +1,22 @@
-// טעינת פרופיל
 async function loadProfile() {
-    const res  = await fetch('/api/farmers/me');
+    const res = await fetch('/api/farmers/me');
     if (!res.ok) { window.location.href = '/login'; return; }
-    const data = await res.json();
+    const d = await res.json();
 
     document.getElementById('profileInfo').innerHTML = `
         <div class="profile-info">
-            <p>שם: <span>${data.name}</span></p>
-            <p>טלפון: <span>${data.phone}</span></p>
-            <p>מיקום: <span>${data.location}</span></p>
-            <p>דונמים: <span>${data.dunams}</span></p>
-            <p>גידול: <span>${data.crop_type || '-'}</span></p>
+            <p>שם: <span>${d.name}</span></p>
+            <p>טלפון: <span>${d.phone}</span></p>
+            <p>מיקום: <span>${d.location}</span></p>
+            <p>דונמים: <span>${d.dunams}</span></p>
+            <p>גידול: <span>${d.crop_type || '-'}</span></p>
         </div>
     `;
-
-    // מילוי הטופס
-    document.getElementById('name').value      = data.name;
-    document.getElementById('phone').value     = data.phone;
-    document.getElementById('location').value  = data.location;
-    document.getElementById('dunams').value    = data.dunams;
-    document.getElementById('crop_type').value = data.crop_type || '';
+    document.getElementById('name').value      = d.name;
+    document.getElementById('phone').value     = d.phone;
+    document.getElementById('location').value  = d.location;
+    document.getElementById('dunams').value    = d.dunams;
+    document.getElementById('crop_type').value = d.crop_type || '';
 }
 
 function toggleEditProfile() {
@@ -41,16 +38,16 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
     else alert(data.error);
 });
 
-// יצירת משימה
 document.getElementById('newTaskForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const body = {
-        title:              document.getElementById('title').value,
-        description:        document.getElementById('description').value,
-        work_type:          document.getElementById('work_type').value,
-        volunteers_needed:  document.getElementById('volunteers_needed').value,
-        start_date:         document.getElementById('start_date').value,
-        end_date:           document.getElementById('end_date').value,
+        title:             document.getElementById('title').value,
+        description:       document.getElementById('description').value,
+        work_type:         document.getElementById('work_type').value,
+        volunteers_needed: document.getElementById('volunteers_needed').value,
+        work_hours:        document.getElementById('work_hours').value,
+        start_date:        document.getElementById('start_date').value,
+        end_date:          document.getElementById('end_date').value,
     };
     const res  = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json();
@@ -63,30 +60,35 @@ document.getElementById('newTaskForm').addEventListener('submit', async (e) => {
     }
 });
 
-// משימות החקלאי
 async function loadMyTasks() {
     const res   = await fetch('/api/farmers/me/tasks');
     const tasks = await res.json();
 
     if (!tasks.length) {
-        document.getElementById('myTasks').innerHTML = '<p class="loading">אין משימות עדיין</p>';
+        document.getElementById('myTasks').innerHTML = '<p class="loading">לא פרסמת התנדבויות עדיין</p>';
         return;
     }
 
     document.getElementById('myTasks').innerHTML = `
         <table>
-            <thead><tr><th>כותרת</th><th>סוג עבודה</th><th>תאריך התחלה</th><th>סטטוס</th><th>מתנדב</th><th>פעולות</th></tr></thead>
+            <thead><tr>
+                <th>כותרת</th><th>סוג עבודה</th><th>שעות</th>
+                <th>תאריך התחלה</th><th>מתנדבים דרוש</th>
+                <th>סטטוס</th><th>מתנדב שובץ</th><th>פעולות</th>
+            </tr></thead>
             <tbody>
                 ${tasks.map(t => `
                     <tr>
                         <td>${t.title}</td>
                         <td>${t.work_type}</td>
+                        <td>${t.work_hours || '-'}</td>
                         <td>${formatDate(t.start_date)}</td>
+                        <td>${t.volunteers_needed}</td>
                         <td><span class="status-badge status-${t.status}">${translateStatus(t.status)}</span></td>
                         <td>${t.volunteer_name || '-'}</td>
                         <td>
-                            ${t.status === 'assigned' ? `<button class="btn btn-secondary" onclick="completeTask(${t.id})">סיים</button>` : ''}
-                            ${t.status === 'open'     ? `<button class="btn btn-danger"    onclick="cancelTask(${t.id})">בטל</button>` : ''}
+                            ${t.status === 'assigned'  ? `<button class="btn btn-secondary" onclick="completeTask(${t.id})">סיים ✓</button>` : ''}
+                            ${t.status === 'open'      ? `<button class="btn btn-danger"    onclick="cancelTask(${t.id})">בטל ✕</button>` : ''}
                         </td>
                     </tr>
                 `).join('')}
@@ -96,7 +98,7 @@ async function loadMyTasks() {
 }
 
 async function completeTask(id) {
-    if (!confirm('לסמן משימה זו כהושלמה?')) return;
+    if (!confirm('לסמן התנדבות זו כהושלמה?')) return;
     const res  = await fetch(`/api/tasks/${id}/complete`, { method: 'PUT' });
     const data = await res.json();
     alert(data.message || data.error);
@@ -104,7 +106,7 @@ async function completeTask(id) {
 }
 
 async function cancelTask(id) {
-    if (!confirm('לבטל משימה זו?')) return;
+    if (!confirm('לבטל התנדבות זו?')) return;
     const res  = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
     const data = await res.json();
     alert(data.message || data.error);

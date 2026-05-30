@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 
 <main class="dashboard">
-    <h2>דשבורד חקלאי</h2>
+    <h2>דשבורד חקלאי 🚜</h2>
 
     <div class="dashboard-grid">
         <!-- פרופיל -->
@@ -9,28 +9,28 @@
             <h3>הפרופיל שלי</h3>
             <div id="profileInfo"><p class="loading">טוען...</p></div>
             <button class="btn btn-secondary" onclick="toggleEditProfile()">ערוך פרופיל</button>
-            <form id="editProfileForm" class="hidden">
-                <input type="text"   id="name"      placeholder="שם מלא">
-                <input type="tel"    id="phone"     placeholder="טלפון">
-                <input type="text"   id="location"  placeholder="מיקום">
-                <input type="number" id="dunams"    placeholder="דונמים" min="0">
-                <input type="text"   id="crop_type" placeholder="סוג גידול">
-                <button type="submit" class="btn btn-primary">שמור</button>
+            <form id="editProfileForm" class="hidden" style="margin-top:12px">
+                <div class="form-group"><label>שם מלא</label><input type="text" id="name" placeholder="שם מלא"></div>
+                <div class="form-group"><label>טלפון</label><input type="tel" id="phone" placeholder="0501234567"></div>
+                <div class="form-group"><label>מיקום החווה</label><input type="text" id="location" placeholder="עיר / אזור"></div>
+                <div class="form-group"><label>דונמים</label><input type="number" id="dunams" placeholder="0" min="0"></div>
+                <div class="form-group"><label>סוג גידול</label><input type="text" id="crop_type" placeholder="עגבניות, ענבים..."></div>
+                <button type="submit" class="btn btn-primary btn-full">שמור שינויים</button>
             </form>
         </section>
 
-        <!-- יצירת משימה חדשה -->
+        <!-- פרסום התנדבות חדשה -->
         <section class="card">
-            <h3>פרסם משימה חדשה</h3>
+            <h3>פרסם התנדבות חדשה 📋</h3>
             <div id="taskMsg" class="msg hidden"></div>
             <form id="newTaskForm">
                 <div class="form-group">
                     <label>כותרת</label>
-                    <input type="text" id="title" required placeholder="תיאור קצר">
+                    <input type="text" id="title" required placeholder="למשל: קציר חיטה">
                 </div>
                 <div class="form-group">
                     <label>פירוט</label>
-                    <textarea id="description" rows="3" placeholder="פרטים נוספים..."></textarea>
+                    <textarea id="description" rows="2" placeholder="פרטים נוספים על העבודה..."></textarea>
                 </div>
                 <div class="form-group">
                     <label>סוג עבודה</label>
@@ -44,9 +44,15 @@
                         <option value="אחר">אחר</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>מספר מתנדבים דרוש</label>
-                    <input type="number" id="volunteers_needed" value="1" min="1">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מספר מתנדבים דרוש</label>
+                        <input type="number" id="volunteers_needed" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>שעות עבודה</label>
+                        <input type="text" id="work_hours" placeholder="למשל: 08:00-13:00">
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -58,13 +64,13 @@
                         <input type="date" id="end_date" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">פרסם משימה</button>
+                <button type="submit" class="btn btn-primary btn-full">פרסם התנדבות</button>
             </form>
         </section>
 
-        <!-- המשימות שלי -->
+        <!-- ההתנדבויות שלי -->
         <section class="card full-width">
-            <h3>המשימות שלי</h3>
+            <h3>ההתנדבויות שפרסמתי</h3>
             <div id="myTasks"><p class="loading">טוען...</p></div>
         </section>
     </div>

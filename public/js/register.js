@@ -1,37 +1,36 @@
-function selectRole(role) {
+function selectRole(role, btn) {
     document.getElementById('role').value = role;
 
-    // עדכון כפתורים
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-    // הצגת שדות מתאימים
     document.getElementById('farmerFields').classList.toggle('hidden',    role !== 'farmer');
     document.getElementById('volunteerFields').classList.toggle('hidden', role !== 'volunteer');
-    document.getElementById('orgFields').classList.toggle('hidden',       role !== 'organization');
+    document.getElementById('adminFields').classList.toggle('hidden',     role !== 'admin');
 }
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const role = document.getElementById('role').value;
+
     const body = {
-        username: document.getElementById('username').value,
-        email:    document.getElementById('email').value,
+        username: document.getElementById('username').value.trim(),
+        email:    document.getElementById('email').value.trim(),
         password: document.getElementById('password').value,
         role,
-        name:     document.getElementById('name').value,
-        phone:    document.getElementById('phone').value,
     };
 
     if (role === 'farmer') {
-        body.location  = document.getElementById('location').value;
+        body.name      = document.getElementById('name').value.trim();
+        body.phone     = document.getElementById('phone').value.trim();
+        body.location  = document.getElementById('location').value.trim();
         body.dunams    = document.getElementById('dunams').value;
-        body.crop_type = document.getElementById('crop_type').value;
+        body.crop_type = document.getElementById('crop_type').value.trim();
     } else if (role === 'volunteer') {
+        body.name       = document.getElementById('vol_name').value.trim();
+        body.phone      = document.getElementById('vol_phone').value.trim();
         body.group_size = document.getElementById('group_size').value;
-    } else if (role === 'organization') {
-        body.address = document.getElementById('address').value;
     }
 
     try {

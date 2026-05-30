@@ -6,9 +6,9 @@
         <div id="msg" class="msg hidden"></div>
 
         <div class="role-tabs">
-            <button class="tab-btn active" onclick="selectRole('farmer')">חקלאי</button>
-            <button class="tab-btn" onclick="selectRole('volunteer')">מתנדב</button>
-            <button class="tab-btn" onclick="selectRole('organization')">עמותה</button>
+            <button class="tab-btn active" onclick="selectRole('farmer', this)">חקלאי</button>
+            <button class="tab-btn"        onclick="selectRole('volunteer', this)">מתנדב / קבוצה</button>
+            <button class="tab-btn"        onclick="selectRole('admin', this)">מנהל</button>
         </div>
 
         <form id="registerForm">
@@ -26,17 +26,17 @@
                 <label>סיסמה</label>
                 <input type="password" id="password" required placeholder="לפחות 6 תווים">
             </div>
-            <div class="form-group">
-                <label>שם מלא</label>
-                <input type="text" id="name" required placeholder="שם מלא">
-            </div>
-            <div class="form-group">
-                <label>טלפון (10 ספרות)</label>
-                <input type="tel" id="phone" required placeholder="0501234567">
-            </div>
 
             <!-- שדות חקלאי -->
             <div id="farmerFields">
+                <div class="form-group">
+                    <label>שם מלא</label>
+                    <input type="text" id="name" placeholder="שם מלא">
+                </div>
+                <div class="form-group">
+                    <label>טלפון (10 ספרות)</label>
+                    <input type="tel" id="phone" placeholder="0501234567">
+                </div>
                 <div class="form-group">
                     <label>מיקום החווה</label>
                     <input type="text" id="location" placeholder="עיר / אזור">
@@ -54,17 +54,22 @@
             <!-- שדות מתנדב -->
             <div id="volunteerFields" class="hidden">
                 <div class="form-group">
+                    <label>שם / שם הקבוצה</label>
+                    <input type="text" id="vol_name" placeholder="שם מלא או שם הקבוצה">
+                </div>
+                <div class="form-group">
+                    <label>טלפון (10 ספרות)</label>
+                    <input type="tel" id="vol_phone" placeholder="0501234567">
+                </div>
+                <div class="form-group">
                     <label>גודל קבוצה (1 = יחיד)</label>
-                    <input type="number" id="group_size" value="1" min="1">
+                    <input type="number" id="group_size" value="1" min="1" placeholder="כמה אנשים בקבוצה?">
                 </div>
             </div>
 
-            <!-- שדות עמותה -->
-            <div id="orgFields" class="hidden">
-                <div class="form-group">
-                    <label>כתובת</label>
-                    <input type="text" id="address" placeholder="כתובת העמותה">
-                </div>
+            <!-- מנהל - רק פרטי כניסה -->
+            <div id="adminFields" class="hidden">
+                <p class="form-note">מנהל המערכת - גישה לכל הנתונים והדוחות</p>
             </div>
 
             <button type="submit" class="btn btn-primary btn-full">הרשמה</button>

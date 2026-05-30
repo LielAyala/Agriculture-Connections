@@ -1,20 +1,23 @@
 const db = require('../database');
 
-// כל המשימות הפתוחות
+// כל ההתנדבויות - עם פילטרים לפי מיקום, תאריך, גודל קבוצה, סוג עבודה
 const getAllTasks = async (req, res) => {
     try {
-        const { status, work_type } = req.query;
+        const { status, work_type, location, date, group_size } = req.query;
 
         let query = `
-            SELECT t.*, f.name AS farmer_name, f.location, f.crop_type
+            SELECT t.*, f.name AS farmer_name, f.location, f.crop_type, f.phone AS farmer_phone
             FROM tasks t
             JOIN farmers f ON t.farmer_id = f.id
             WHERE 1=1
         `;
         const params = [];
 
-        if (status)    { query += ' AND t.status = ?';    params.push(status); }
-        if (work_type) { query += ' AND t.work_type = ?'; params.push(work_type); }
+        if (status)    { query += ' AND t.status = ?';              params.push(status); }
+        if (work_type) { query += ' AND t.work_type = ?';           params.push(work_type); }
+        if (location)  { query += ' AND f.location LIKE ?';         params.push(`%${location}%`); }
+        if (date)      { query += ' AND t.start_date <= ? AND t.end_date >= ?'; params.push(date, date); }
+        if (group_size){ query += ' AND t.volunteers_needed >= ?';  params.push(parseInt(group_size)); }
 
         query += ' ORDER BY t.created_at DESC';
 
@@ -22,11 +25,11 @@ const getAllTasks = async (req, res) => {
         res.json(tasks);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה בטעינת המשימות' });
+        res.status(500).json({ error: 'שגיאה בטעינת ההתנדבויות' });
     }
 };
 
-// משימה בודדת
+// התנדבות בודדת
 const getTaskById = async (req, res) => {
     try {
         const [rows] = await db.query(`
@@ -38,63 +41,58 @@ const getTaskById = async (req, res) => {
             WHERE t.id = ?
         `, [req.params.id]);
 
-        if (rows.length === 0) return res.status(404).json({ error: 'משימה לא נמצאה' });
+        if (rows.length === 0) return res.status(404).json({ error: 'התנדבות לא נמצאה' });
         res.json(rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה בטעינת המשימה' });
+        res.status(500).json({ error: 'שגיאה בטעינת ההתנדבות' });
     }
 };
 
-// יצירת משימה (חקלאי)
+// יצירת התנדבות (חקלאי)
 const createTask = async (req, res) => {
     try {
-        const { title, description, work_type, volunteers_needed, start_date, end_date } = req.body;
+        const { title, description, work_type, volunteers_needed, work_hours, start_date, end_date } = req.body;
 
         const [farmerRows] = await db.query('SELECT id FROM farmers WHERE user_id = ?', [req.session.userId]);
         if (farmerRows.length === 0) return res.status(404).json({ error: 'פרופיל חקלאי לא נמצא' });
 
-        const farmerId = farmerRows[0].id;
-
         const [result] = await db.query(
-            `INSERT INTO tasks (farmer_id, title, description, work_type, volunteers_needed, start_date, end_date)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [farmerId, title, description, work_type, volunteers_needed || 1, start_date, end_date]
+            `INSERT INTO tasks (farmer_id, title, description, work_type, volunteers_needed, work_hours, start_date, end_date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [farmerRows[0].id, title, description, work_type, volunteers_needed || 1, work_hours || '', start_date, end_date]
         );
 
-        res.status(201).json({ message: 'המשימה נוצרה בהצלחה', taskId: result.insertId });
+        res.status(201).json({ message: 'ההתנדבות פורסמה בהצלחה!', taskId: result.insertId });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה ביצירת המשימה' });
+        res.status(500).json({ error: 'שגיאה בפרסום ההתנדבות' });
     }
 };
 
-// שיבוץ מתנדב למשימה
+// שיבוץ מתנדב - UPDATE מהיר
 const assignTask = async (req, res) => {
     try {
         const [taskRows] = await db.query('SELECT * FROM tasks WHERE id = ?', [req.params.id]);
-        if (taskRows.length === 0) return res.status(404).json({ error: 'משימה לא נמצאה' });
-
-        const task = taskRows[0];
-        if (task.status !== 'open') return res.status(400).json({ error: 'המשימה כבר לא פתוחה' });
+        if (taskRows.length === 0) return res.status(404).json({ error: 'התנדבות לא נמצאה' });
+        if (taskRows[0].status !== 'open') return res.status(400).json({ error: 'ההתנדבות כבר לא פתוחה' });
 
         const [volRows] = await db.query('SELECT id FROM volunteers WHERE user_id = ?', [req.session.userId]);
         if (volRows.length === 0) return res.status(404).json({ error: 'פרופיל מתנדב לא נמצא' });
 
-        // עדכון מהיר - UPDATE
         await db.query(
             'UPDATE tasks SET volunteer_id = ?, status = "assigned" WHERE id = ?',
             [volRows[0].id, req.params.id]
         );
 
-        res.json({ message: 'נרשמת למשימה בהצלחה!' });
+        res.json({ message: 'נרשמת להתנדבות בהצלחה!' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה ברישום למשימה' });
+        res.status(500).json({ error: 'שגיאה ברישום להתנדבות' });
     }
 };
 
-// סיום משימה (חקלאי)
+// סיום (חקלאי)
 const completeTask = async (req, res) => {
     try {
         const [farmerRows] = await db.query('SELECT id FROM farmers WHERE user_id = ?', [req.session.userId]);
@@ -104,16 +102,15 @@ const completeTask = async (req, res) => {
             'UPDATE tasks SET status = "completed" WHERE id = ? AND farmer_id = ?',
             [req.params.id, farmerRows[0].id]
         );
-
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'משימה לא נמצאה' });
-        res.json({ message: 'המשימה הסתיימה בהצלחה' });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'התנדבות לא נמצאה' });
+        res.json({ message: 'ההתנדבות סומנה כהושלמה' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה בסיום המשימה' });
+        res.status(500).json({ error: 'שגיאה בסיום ההתנדבות' });
     }
 };
 
-// ביטול משימה (חקלאי)
+// ביטול (חקלאי)
 const cancelTask = async (req, res) => {
     try {
         const [farmerRows] = await db.query('SELECT id FROM farmers WHERE user_id = ?', [req.session.userId]);
@@ -123,11 +120,10 @@ const cancelTask = async (req, res) => {
             'UPDATE tasks SET status = "cancelled" WHERE id = ? AND farmer_id = ?',
             [req.params.id, farmerRows[0].id]
         );
-
-        res.json({ message: 'המשימה בוטלה' });
+        res.json({ message: 'ההתנדבות בוטלה' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'שגיאה בביטול המשימה' });
+        res.status(500).json({ error: 'שגיאה בביטול ההתנדבות' });
     }
 };
 

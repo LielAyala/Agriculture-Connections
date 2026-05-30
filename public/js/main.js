@@ -11,7 +11,7 @@ async function checkAuth() {
             let dashLink = '/';
             if (data.role === 'farmer')       dashLink = '/farmer-dashboard';
             if (data.role === 'volunteer')    dashLink = '/volunteer-dashboard';
-            if (data.role === 'organization') dashLink = '/organization-dashboard';
+            if (data.role === 'admin') dashLink = '/organization-dashboard';
 
             authLinks.innerHTML = `
                 <a href="${dashLink}">הדשבורד שלי</a>

@@ -1,21 +1,19 @@
 async function loadProfile() {
     const res = await fetch('/api/volunteers/me');
     if (!res.ok) { window.location.href = '/login'; return; }
-    const data = await res.json();
+    const d = await res.json();
 
     document.getElementById('profileInfo').innerHTML = `
         <div class="profile-info">
-            <p>שם: <span>${data.name}</span></p>
-            <p>טלפון: <span>${data.phone}</span></p>
-            <p>גודל קבוצה: <span>${data.group_size}</span></p>
-            <p>מיומנויות: <span>${data.skills || '-'}</span></p>
+            <p>שם: <span>${d.name}</span></p>
+            <p>טלפון: <span>${d.phone}</span></p>
+            <p>סוג: <span>${d.is_group ? 'קבוצה' : 'יחיד'}</span></p>
+            <p>גודל קבוצה: <span>${d.group_size}</span></p>
         </div>
     `;
-
-    document.getElementById('name').value       = data.name;
-    document.getElementById('phone').value      = data.phone;
-    document.getElementById('group_size').value = data.group_size;
-    document.getElementById('skills').value     = data.skills || '';
+    document.getElementById('name').value       = d.name;
+    document.getElementById('phone').value      = d.phone;
+    document.getElementById('group_size').value = d.group_size;
 }
 
 function toggleEditProfile() {
@@ -28,7 +26,6 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
         name:       document.getElementById('name').value,
         phone:      document.getElementById('phone').value,
         group_size: document.getElementById('group_size').value,
-        skills:     document.getElementById('skills').value,
     };
     const res  = await fetch('/api/volunteers/me', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json();
@@ -36,21 +33,50 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
     else alert(data.error);
 });
 
-async function loadOpenTasks() {
-    const res   = await fetch('/api/tasks?status=open');
+// חיפוש עם פילטרים
+async function searchTasks() {
+    const location   = document.getElementById('filterLocation').value.trim();
+    const date       = document.getElementById('filterDate').value;
+    const group_size = document.getElementById('filterGroupSize').value;
+    const work_type  = document.getElementById('filterType').value;
+
+    let url = '/api/tasks?status=open';
+    if (location)   url += `&location=${encodeURIComponent(location)}`;
+    if (date)       url += `&date=${date}`;
+    if (group_size) url += `&group_size=${group_size}`;
+    if (work_type)  url += `&work_type=${encodeURIComponent(work_type)}`;
+
+    await loadOpenTasks(url);
+}
+
+function clearSearch() {
+    document.getElementById('filterLocation').value  = '';
+    document.getElementById('filterDate').value      = '';
+    document.getElementById('filterGroupSize').value = '';
+    document.getElementById('filterType').value      = '';
+    loadOpenTasks('/api/tasks?status=open');
+}
+
+async function loadOpenTasks(url = '/api/tasks?status=open') {
+    const res   = await fetch(url);
     const tasks = await res.json();
+    const container = document.getElementById('openTasks');
 
     if (!tasks.length) {
-        document.getElementById('openTasks').innerHTML = '<p class="loading">אין משימות פתוחות כרגע</p>';
+        container.innerHTML = '<p class="loading">לא נמצאו התנדבויות מתאימות</p>';
         return;
     }
 
-    document.getElementById('openTasks').innerHTML = tasks.slice(0, 5).map(t => `
+    container.innerHTML = tasks.map(t => `
         <div class="task-card">
+            <span class="status-badge status-open">פתוח</span>
             <h4>${t.title}</h4>
-            <p>🚜 ${t.farmer_name} | 📍 ${t.location}</p>
-            <p>🌱 ${t.work_type} | 📅 ${formatDate(t.start_date)}</p>
-            <button class="btn btn-primary" onclick="assignTask(${t.id})">הרשם</button>
+            <p>🚜 ${t.farmer_name} &nbsp;|&nbsp; 📍 ${t.location}</p>
+            <p>🌱 ${t.work_type} &nbsp;|&nbsp; 👥 ${t.volunteers_needed} מתנדבים</p>
+            <p>⏰ ${t.work_hours || 'שעות לא צוינו'}</p>
+            <p>📅 ${formatDate(t.start_date)} עד ${formatDate(t.end_date)}</p>
+            ${t.description ? `<p style="color:#555;font-size:0.85rem">${t.description}</p>` : ''}
+            <button class="btn btn-primary" onclick="assignTask(${t.id})">הרשם להתנדבות</button>
         </div>
     `).join('');
 }
@@ -67,13 +93,16 @@ async function loadMyTasks() {
     const tasks = await res.json();
 
     if (!tasks.length) {
-        document.getElementById('myTasks').innerHTML = '<p class="loading">לא נרשמת למשימות עדיין</p>';
+        document.getElementById('myTasks').innerHTML = '<p class="loading">לא נרשמת להתנדבויות עדיין</p>';
         return;
     }
 
     document.getElementById('myTasks').innerHTML = `
         <table>
-            <thead><tr><th>כותרת</th><th>חקלאי</th><th>מיקום</th><th>טלפון חקלאי</th><th>תאריך</th><th>סטטוס</th></tr></thead>
+            <thead><tr>
+                <th>כותרת</th><th>חקלאי</th><th>מיקום</th>
+                <th>טלפון חקלאי</th><th>תאריך</th><th>שעות</th><th>סטטוס</th>
+            </tr></thead>
             <tbody>
                 ${tasks.map(t => `
                     <tr>
@@ -82,6 +111,7 @@ async function loadMyTasks() {
                         <td>${t.location}</td>
                         <td>${t.farmer_phone}</td>
                         <td>${formatDate(t.start_date)}</td>
+                        <td>${t.work_hours || '-'}</td>
                         <td><span class="status-badge status-${t.status}">${translateStatus(t.status)}</span></td>
                     </tr>
                 `).join('')}

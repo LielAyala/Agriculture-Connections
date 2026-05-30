@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 
 <main class="dashboard">
-    <h2>דשבורד מתנדב</h2>
+    <h2>דשבורד מתנדב 🤝</h2>
 
     <div class="dashboard-grid">
         <!-- פרופיל -->
@@ -9,24 +9,56 @@
             <h3>הפרופיל שלי</h3>
             <div id="profileInfo"><p class="loading">טוען...</p></div>
             <button class="btn btn-secondary" onclick="toggleEditProfile()">ערוך פרופיל</button>
-            <form id="editProfileForm" class="hidden">
-                <input type="text"   id="name"       placeholder="שם מלא">
-                <input type="tel"    id="phone"      placeholder="טלפון">
-                <input type="number" id="group_size" placeholder="גודל קבוצה" min="1" value="1">
-                <input type="text"   id="skills"     placeholder="מיומנויות (מופרדות בפסיק)">
-                <button type="submit" class="btn btn-primary">שמור</button>
+            <form id="editProfileForm" class="hidden" style="margin-top:12px">
+                <div class="form-group"><label>שם / שם הקבוצה</label><input type="text" id="name" placeholder="שם"></div>
+                <div class="form-group"><label>טלפון</label><input type="tel" id="phone" placeholder="0501234567"></div>
+                <div class="form-group"><label>גודל קבוצה</label><input type="number" id="group_size" value="1" min="1"></div>
+                <button type="submit" class="btn btn-primary btn-full">שמור</button>
             </form>
         </section>
 
-        <!-- משימות זמינות -->
+        <!-- חיפוש התנדבויות -->
         <section class="card">
-            <h3>משימות פתוחות</h3>
+            <h3>חפש התנדבות 🔍</h3>
+            <div class="search-filters">
+                <div class="form-group">
+                    <label>📍 מיקום</label>
+                    <input type="text" id="filterLocation" placeholder="עיר / אזור...">
+                </div>
+                <div class="form-group">
+                    <label>📅 תאריך</label>
+                    <input type="date" id="filterDate">
+                </div>
+                <div class="form-group">
+                    <label>👥 גודל קבוצה מינימלי</label>
+                    <input type="number" id="filterGroupSize" min="1" placeholder="מספר אנשים">
+                </div>
+                <div class="form-group">
+                    <label>🌱 סוג עבודה</label>
+                    <select id="filterType">
+                        <option value="">הכל</option>
+                        <option value="קציר">קציר</option>
+                        <option value="שתילה">שתילה</option>
+                        <option value="השקיה">השקיה</option>
+                        <option value="ניכוש">ניכוש</option>
+                        <option value="קטיף">קטיף</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="searchTasks()">חפש</button>
+                <button class="btn btn-secondary btn-full" style="margin-top:6px" onclick="clearSearch()">הצג הכל</button>
+            </div>
+        </section>
+
+        <!-- תוצאות חיפוש -->
+        <section class="card full-width">
+            <h3>התנדבויות פתוחות</h3>
             <div id="openTasks"><p class="loading">טוען...</p></div>
         </section>
 
-        <!-- המשימות שלי -->
+        <!-- ההתנדבויות שנרשמתי -->
         <section class="card full-width">
-            <h3>ההתנדבויות שלי</h3>
+            <h3>ההתנדבויות שלי ✅</h3>
             <div id="myTasks"><p class="loading">טוען...</p></div>
         </section>
     </div>
